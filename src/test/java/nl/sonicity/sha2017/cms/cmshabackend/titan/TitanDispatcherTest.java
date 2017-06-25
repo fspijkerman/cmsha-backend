@@ -1,5 +1,7 @@
 package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
+import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.RequestFailedException;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import org.junit.After;
 import org.junit.Before;
@@ -8,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
+import org.mockserver.model.HttpStatusCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
@@ -15,6 +18,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 
+import static com.googlecode.catchexception.CatchException.catchException;
+import static com.googlecode.catchexception.CatchException.caughtException;
+import static com.googlecode.catchexception.apis.CatchExceptionHamcrestMatchers.hasMessage;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -47,7 +55,7 @@ public class TitanDispatcherTest {
                         .updateHeader("Content-Type","application/json")
                         .withBody("\"10.1\""));
 
-        String actual = titanDispatcher.getVersion().getValue();
+        String actual = titanDispatcher.getVersion();
 
         assertEquals("10.1", actual);
     }
@@ -61,7 +69,7 @@ public class TitanDispatcherTest {
                         .updateHeader("Content-Type","application/json")
                         .withBody("\"Dna room basic white 05.01.2016\""));
 
-        String actual = titanDispatcher.getShowName().getValue();
+        String actual = titanDispatcher.getShowName();
 
         assertEquals("Dna room basic white 05.01.2016", actual);
 
@@ -117,6 +125,133 @@ public class TitanDispatcherTest {
         Handle group = actual.get(0);
         assertThat(group.getTitanId(), equalTo(3810));
         assertThat(group.getType(), equalTo("paletteHandle"));
+    }
+
+    @Test
+    public void programmerEditorClearAll() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Programmer/Editor/ClearAll"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.programmerEditorClearAll();
+
+        clientAndServer.verify(HttpRequest.request("/titan/script/2/Programmer/Editor/ClearAll"));
+    }
+
+    @Test
+    public void playbacksSelectionClear() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Playbacks/Selection/Clear"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.playbacksSelectionClear();
+
+        clientAndServer.verify(HttpRequest.request("/titan/script/2/Playbacks/Selection/Clear"));
+    }
+
+    @Test
+    public void programmerEditorFixturesSetControlValue() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Programmer/Editor/Fixtures/SetControlValueById"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 0.5f, true, true);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Programmer/Editor/Fixtures/SetControlValueById")
+                .withQueryStringParameter("controlId", "16")
+                .withQueryStringParameter("functionId", "1")
+                .withQueryStringParameter("value", "0.5")
+                .withQueryStringParameter("programmer", "true")
+                .withQueryStringParameter("createRestorePoint", "true"));
+    }
+
+    @Test
+    public void selectionContextSelectFixture() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Selection/Context/SelectFixture"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.selectionContextSelectFixture(1836);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Selection/Context/SelectFixture")
+                .withQueryStringParameter("handle_titanId", "1836"));
+    }
+
+    @Test
+    public void groupRecallGroup() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Group/RecallGroup"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.groupRecallGroup(1876);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Group/RecallGroup")
+                .withQueryStringParameter("handle_titanId", "1876"));
+    }
+
+    @Test
+    public void groupRecallGroupById() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Group/RecallGroupById"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.groupRecallGroupById(1876);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Group/RecallGroupById")
+                .withQueryStringParameter("groupId", "1876"));
+    }
+
+    @Test
+    public void failedGroupRecallGroup() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Group/RecallGroup"))
+                .respond(HttpResponse.response()
+                        .withStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500.code())
+                        .withBody("Some error message from the Titan"));
+
+        catchException(titanDispatcher).groupRecallGroup(1876);
+
+        assertThat(caughtException(),
+                allOf(
+                        instanceOf(RequestFailedException.class),
+                        hasMessage("Some error message from the Titan")
+                )
+        );
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Group/RecallGroup")
+                .withQueryStringParameter("handle_titanId", "1876"));
+    }
+
+    @Test
+    public void programmerEditorFixturesLocateSelectedFixtures() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Programmer/Editor/Fixtures/LocateSelectedFixtures"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.programmerEditorFixturesLocateSelectedFixtures(true);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Programmer/Editor/Fixtures/LocateSelectedFixtures")
+                .withQueryStringParameter("allAttributes", "true"));
     }
 
 }
