@@ -14,3 +14,8 @@ Links
  * [Avolites WEBAPI page](https://www.avolites.com/webapi)
  * [Forum post on color changes](http://forum.avolites.com/viewtopic.php?f=21&t=5189)
  * [Avolites WEBAPI docs](http://api.avolites.com/10.1/index.html)
+
+
+Notes
+-----
+Avolites Titan is a registered trademark of the company [Avolites Ltd.](https://www.avolites.com)
