@@ -39,7 +39,7 @@ public class TitanDispatcher {
     private String baseUrl;
     private RestTemplate restTemplate;
 
-    @Value("${titan.wepapi.url}")
+    @Value("${titan.webapi.url}")
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
         restTemplate = new RestTemplate();
