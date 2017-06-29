@@ -32,6 +32,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
@@ -190,7 +191,7 @@ public class TitanDispatcherTest {
     @Test
     public void selectionContextSelectFixture() throws Exception {
         clientAndServer
-                .when(HttpRequest.request("/titan/script/2/Selection/Context/SelectFixture"))
+                .when(HttpRequest.request("/titan/script/2/Selection/Context/Global/SelectFixture"))
                 .respond(HttpResponse.response()
                         .updateHeader("Content-Length","0")
                         .withBody(""));
@@ -198,7 +199,7 @@ public class TitanDispatcherTest {
         titanDispatcher.selectionContextSelectFixture(1836);
 
         clientAndServer.verify(HttpRequest
-                .request("/titan/script/2/Selection/Context/SelectFixture")
+                .request("/titan/script/2/Selection/Context/Global/SelectFixture")
                 .withQueryStringParameter("handle_titanId", "1836"));
     }
 
@@ -267,6 +268,173 @@ public class TitanDispatcherTest {
         clientAndServer.verify(HttpRequest
                 .request("/titan/script/2/Programmer/Editor/Fixtures/LocateSelectedFixtures")
                 .withQueryStringParameter("allAttributes", "true"));
+    }
+
+    @Test
+    public void getHandleByLocation() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Handles/GetHandle"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","178")
+                        .updateHeader("Content-Type","application/json")
+                        .withBody("{\"handleLocation\":{\"group\":\"Fixtures\",\"index\":80,\"page\":3},\"properties\":[{\"Key\":\"lockState\",\"Value\":\"Unlocked\"}],"
+                                + "\"titanId\":3514,\"type\":\"fixtureHandle\",\"Active\":false,\"Legend\":\"\"}"));
+
+        Optional<Handle> handle = titanDispatcher.getHandleByLocation("fixtures", 80, 3);
+
+        assertThat(handle.isPresent(), equalTo(true));
+        assertThat(3514, equalTo(handle.get().getTitanId()));
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Handles/GetHandle")
+                .withQueryStringParameter("group", "fixtures")
+                .withQueryStringParameter("index", "80")
+                .withQueryStringParameter("page", "3"));
+    }
+
+    @Test
+    public void getHandleByLocationEmptyLocation() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Handles/GetHandle"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        Optional<Handle> handle = titanDispatcher.getHandleByLocation("fixtures", 3, 1);
+
+        assertThat(false, equalTo(handle.isPresent()));
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Handles/GetHandle")
+                .withQueryStringParameter("group", "fixtures")
+                .withQueryStringParameter("index", "3")
+                .withQueryStringParameter("page", "1"));
+    }
+
+    @Test
+    public void playbacksPlayCue() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Playbacks/PlayCue"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.playbacksPlayCue("playbackwindow", 1, 0.5f, 1);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Playbacks/PlayCue")
+                .withQueryStringParameter("group", "playbackwindow")
+                .withQueryStringParameter("index", "1")
+                .withQueryStringParameter("level", "0.5")
+                .withQueryStringParameter("accuracy", "1"));
+    }
+
+    @Test
+    public void playbacksStoreCue() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Playbacks/StoreCue"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.playbacksStoreCue("playbackwindow", 3, false);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Playbacks/StoreCue")
+                .withQueryStringParameter("group", "playbackwindow")
+                .withQueryStringParameter("index", "3")
+                .withQueryStringParameter("updateOnly", "false"));
+    }
+
+    @Test
+    public void playbacksReplacePlaybackCue() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Playbacks/ReplacePlaybackCue"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.playbacksReplacePlaybackCue(1111, true);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Playbacks/ReplacePlaybackCue")
+                .withQueryStringParameter("handle_titanId", "1111")
+                .withQueryStringParameter("updateOnly", "true"));
+    }
+
+    @Test
+    public void programmerSetBlindMode() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Programmer/SetBlindMode"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.programmerSetBlindMode(false, 0.3f);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Programmer/SetBlindMode")
+                .withQueryStringParameter("setChangesLive", "false")
+                .withQueryStringParameter("fadeTime", "0.3"));
+    }
+
+    @Test
+    public void programmerIsBlindActive() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/get/2/Programmer/BlindActive"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","4")
+                        .withBody("true"));
+
+        boolean result = titanDispatcher.programmerIsBlindActive();
+
+        assertThat(result, equalTo(true));
+    }
+
+    @Test
+    public void playbacksSelectEditHandle() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Playbacks/Select/EditHandle"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.playbacksSelectEditHandle(1111);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Playbacks/Select/EditHandle")
+                .withQueryStringParameter("handle_titanId", "1111"));
+    }
+
+    @Test
+    public void setPlaybacksPlaybackOptionsPriority() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/set/2/Playbacks/PlaybackOptions/Priority"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/set/2/Playbacks/PlaybackOptions/Priority")
+                .withMethod("POST")
+                .withBody("75"));
+    }
+
+    @Test
+    public void playbacksPlaybackEditExit() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/script/2/Playbacks/PlaybackEdit/Exit"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.playbacksPlaybackEditExit();
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/script/2/Playbacks/PlaybackEdit/Exit")
+                .withBody(""));
     }
 
 }

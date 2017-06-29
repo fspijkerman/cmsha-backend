@@ -22,6 +22,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleType;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class TitanDispatcher {
@@ -93,6 +95,19 @@ public class TitanDispatcher {
         return Arrays.asList(fixtures);
     }
 
+    // curl "http://10.71.96.105:4430/titan/script/2/Handles/GetHandle?group=Fixtures&index=80&page=3"
+    public Optional<Handle> getHandleByLocation(String group, int index, int page) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/titan/script/2/Handles/GetHandle")
+                .queryParam("group", group)
+                .queryParam("index", index)
+                .queryParam("page", page);
+
+        return Optional.ofNullable(restTemplate
+                .getForObject(builder.build().encode().toString(), Handle.class));
+
+    }
+
     public void playbacksSelectionClear() {
         executeTitanScriptCall(getUrlForPath("/titan/script/2/Playbacks/Selection/Clear"));
     }
@@ -137,7 +152,7 @@ public class TitanDispatcher {
 
     public void selectionContextSelectFixture(int titanId) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("/titan/script/2/Selection/Context/SelectFixture")
+                .path("/titan/script/2/Selection/Context/Global/SelectFixture")
                 .queryParam("handle_titanId", titanId);
 
         executeTitanScriptCall(builder.build().encode().toString());
@@ -183,10 +198,10 @@ public class TitanDispatcher {
         DecimalFormat formatter = new DecimalFormat("#.###");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("/titan/script/2/Playbacks/StoreCue")
+                .path("/titan/script/2/Playbacks/PlayCue")
                 .queryParam("group", group)
                 .queryParam("index", index)
-                .queryParam("level_level", formatter.format(level))
+                .queryParam("level", formatter.format(level))
                 .queryParam("accuracy", formatter.format(accuracy));
 
         String requestUrl = builder.build().encode().toString();
@@ -197,7 +212,7 @@ public class TitanDispatcher {
         DecimalFormat formatter = new DecimalFormat("#.###");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("/titan/script/2/Playbacks/StoreCue")
+                .path("/titan/script/2/Playbacks/ReplacePlaybackCue")
                 .queryParam("handle_titanId", titanId)
                 .queryParam("updateOnly", Boolean.toString(updateOnly));
 
@@ -221,8 +236,49 @@ public class TitanDispatcher {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/get/2/Programmer/BlindActive");
 
-        return restTemplate
-                .getForObject(builder.build().encode().toString(), Boolean.class);
+        String booleanString = restTemplate
+                .getForObject(builder.build().encode().toString(), String.class);
+
+        return Boolean.parseBoolean(booleanString);
+    }
+
+    public void playbacksSelectEditHandle(int titanId) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/titan/script/2/Playbacks/Select/EditHandle")
+                .queryParam("handle_titanId", titanId);
+
+        String requestUrl = builder.build().encode().toString();
+        executeTitanScriptCall(requestUrl);
+    }
+
+    public int getPlaybacksPlaybackOptionsPriority() {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/titan/get/2/Playbacks/PlaybackOptions/Priority");
+
+        String requestUrl = builder.build().encode().toString();
+
+        String jsonString = restTemplate
+                .getForObject(requestUrl, String.class);
+
+        return Integer.parseInt(jsonString);
+    }
+
+    public void setPlaybacksPlaybackOptionsPriority(int priority) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/titan/set/2/Playbacks/PlaybackOptions/Priority");
+
+        String requestUrl = builder.build().encode().toString();
+
+        restTemplate
+                .exchange(requestUrl, HttpMethod.POST, new HttpEntity<>(Integer.toString(priority)), Void.class);
+    }
+
+    public void playbacksPlaybackEditExit() {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/titan/script/2/Playbacks/PlaybackEdit/Exit");
+
+        String requestUrl = builder.build().encode().toString();
+        executeTitanScriptCall(requestUrl);
     }
 
     private ResponseEntity<Void> executeTitanScriptCall(String requestUrl) {

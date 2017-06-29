@@ -20,6 +20,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -39,22 +40,26 @@ public class TitanDispatcherIT {
     @Autowired
     private TitanDispatcher titanDispatcher;
 
+    @Value("${ittest.showName}")
+    private String showName;
+
+    @Value("${ittest.testGroup}")
+    private String testGroup;
+
     @Test
-    public void selectAndLocateFixture() {
+    public void selectAndLocateFixture() throws Exception {
         String showname = titanDispatcher.getShowName();
-        assertThat("This test depends a matching show loaded in the titan", showname, equalTo("Test Show Hugo"));
+        assertThat("This test depends a matching show loaded in the titan", showname, equalTo(showname));
 
-        Optional<Handle> fixtureHandle = titanDispatcher.listFixtures()
+        Handle fixture = titanDispatcher.listFixtures()
                 .stream()
-                .filter(fixture -> fixture.getHandleLocation().getIndex() == 1 &&
-                    fixture.getHandleLocation().getPage() == 0)
-                .findFirst();
-
-        assertThat(fixtureHandle.isPresent(), equalTo(true));
+                .filter(f -> f.getHandleLocation().getIndex() == 1 &&
+                    f.getHandleLocation().getPage() == 0)
+                .findFirst().orElseThrow(() -> new Exception("No fixtures found"));
 
         titanDispatcher.playbacksSelectionClear();
         titanDispatcher.programmerEditorClearAll();
-        titanDispatcher.selectionContextSelectFixture(fixtureHandle.get().getTitanId());
+        titanDispatcher.selectionContextSelectFixture(fixture.getTitanId());
         titanDispatcher.programmerEditorFixturesLocateSelectedFixtures(false);
 
         // Visually inspect, first lamp should be "located"
@@ -63,7 +68,7 @@ public class TitanDispatcherIT {
     @Test
     public void selectAndLocateGroup() {
         String showname = titanDispatcher.getShowName();
-        assertThat("This test depends a matching show loaded in the titan", showname, equalTo("Test Show Hugo"));
+        assertThat("This test depends a matching show loaded in the titan", showname, equalTo(showname));
 
         titanDispatcher.listGroups()
                 .stream()
@@ -73,7 +78,7 @@ public class TitanDispatcherIT {
 
         Optional<Handle> handle = titanDispatcher.listGroups()
                 .stream()
-                .filter(group -> group.getLegend().equals("Dim 1"))
+                .filter(group -> group.getLegend().equals(testGroup))
                 .findFirst();
 
         assertThat(handle.isPresent(), equalTo(true));
@@ -89,7 +94,7 @@ public class TitanDispatcherIT {
     @Test
     public void clearProgrammer() {
         String showname = titanDispatcher.getShowName();
-        assertThat("This test depends a matching show loaded in the titan", showname, equalTo("Test Show Hugo"));
+        assertThat("This test depends a matching show loaded in the titan", showname, equalTo(showname));
 
         titanDispatcher.playbacksSelectionClear();
         titanDispatcher.programmerEditorClearAll();
@@ -98,7 +103,7 @@ public class TitanDispatcherIT {
     @Test
     public void createHighPrioColorCue() throws Exception {
         String showname = titanDispatcher.getShowName();
-        assertThat("This test depends a matching show loaded in the titan", showname, equalTo("Test Show Hugo"));
+        assertThat("This test depends a matching show loaded in the titan", showname, equalTo(showname));
 
         titanDispatcher.playbacksSelectionClear();
         titanDispatcher.programmerEditorClearAll();
@@ -106,8 +111,8 @@ public class TitanDispatcherIT {
         // Select group
         Handle handle = titanDispatcher.listGroups()
                 .stream()
-                .filter(group -> group.getLegend().equals("Dim 1"))
-                .findFirst().orElseThrow(() -> new Exception("No handle Dim 1 Found"));
+                .filter(group -> group.getLegend().equals(testGroup))
+                .findFirst().orElseThrow(() -> new Exception("No handle " + testGroup + " Found"));
 
         titanDispatcher.groupRecallGroupById(handle.getTitanId());
 
@@ -129,21 +134,32 @@ public class TitanDispatcherIT {
 
         // Set Macro "Safe"
         // Set Mode "Dimmer"
-        // Record
-        //   -> Cue
-        titanDispatcher.playbacksStoreCue("PlaybackWindow", 5, true);
-        // Clear All\
-        // Playback Options
-        // -> Select Cue
-        // -> Playback
-        //    --> Priority High
-        //    Exit
-        //  Exit
-        // Clear All
+
+        // Check contents of the target location
+        Optional<Handle> currentHandle = titanDispatcher.getHandleByLocation("PlaybackWindow", 1, 0);
+
+        if (currentHandle.isPresent()) {
+            titanDispatcher.playbacksReplacePlaybackCue(currentHandle.get().getTitanId(), false);
+        } else {
+            titanDispatcher.playbacksStoreCue("PlaybackWindow", 1, true);
+        }
+
         titanDispatcher.playbacksSelectionClear();
         titanDispatcher.programmerEditorClearAll();
 
-        titanDispatcher.programmerSetBlindMode(false, 0);
+        titanDispatcher.playbacksSelectEditHandle(currentHandle.get().getTitanId());
+        titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
+
+        int priority = titanDispatcher.getPlaybacksPlaybackOptionsPriority();
+
+        assertThat(75, equalTo(priority));
+
+        titanDispatcher.playbacksPlaybackEditExit();
+
+        titanDispatcher.playbacksSelectionClear();
+        titanDispatcher.programmerEditorClearAll();
+
+        titanDispatcher.programmerSetBlindMode(true, 0);
     }
 
 }
