@@ -281,6 +281,17 @@ public class TitanDispatcher {
         executeTitanScriptCall(requestUrl);
     }
 
+    public void setProgrammerBlindActive(boolean blindActive) {
+        // or http://[ip]:4430/titan/script/2/ActionScript/SetProperty/Boolean?id=Programmer.BlindActive&value=true
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("//titan/set/2/Programmer/BlindActive");
+
+        String requestUrl = builder.build().encode().toString();
+
+        restTemplate
+                .exchange(requestUrl, HttpMethod.POST, new HttpEntity<>(Boolean.toString(blindActive)), Void.class);
+    }
+
     private ResponseEntity<Void> executeTitanScriptCall(String requestUrl) {
         try {
             return restTemplate.exchange(requestUrl, HttpMethod.GET, null, Void.class);

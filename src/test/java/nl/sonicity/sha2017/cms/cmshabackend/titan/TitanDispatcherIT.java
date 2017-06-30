@@ -115,22 +115,24 @@ public class TitanDispatcherIT {
                 .findFirst().orElseThrow(() -> new Exception("No handle " + testGroup + " Found"));
 
         titanDispatcher.groupRecallGroupById(handle.getTitanId());
+        titanDispatcher.programmerEditorFixturesLocateSelectedFixtures(false);
 
+        titanDispatcher.setProgrammerBlindActive(false);
         titanDispatcher.programmerSetBlindMode(false, 0);
 
-        //assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(true));
+        assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(false));
 
         // Set Dimmer 100%
         titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
 
-        // Set Red 0%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, 0, true, false);
+        // Set Red 100%
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, 0f, true, false);
 
         // Set Green 8%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, 0.08f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, 1f, true, false);
 
-        // Set Blue 100%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, 1, true, false);
+        // Set Blue 0%
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, 0f, true, false);
 
         // Set Macro "Safe"
         // Set Mode "Dimmer"
@@ -142,6 +144,7 @@ public class TitanDispatcherIT {
             titanDispatcher.playbacksReplacePlaybackCue(currentHandle.get().getTitanId(), false);
         } else {
             titanDispatcher.playbacksStoreCue("PlaybackWindow", 1, true);
+            currentHandle = titanDispatcher.getHandleByLocation("PlaybackWindow", 1, 0);
         }
 
         titanDispatcher.playbacksSelectionClear();
@@ -159,7 +162,10 @@ public class TitanDispatcherIT {
         titanDispatcher.playbacksSelectionClear();
         titanDispatcher.programmerEditorClearAll();
 
-        titanDispatcher.programmerSetBlindMode(true, 0);
+        titanDispatcher.setProgrammerBlindActive(false);
+        titanDispatcher.programmerSetBlindMode(false, 0);
+
+
     }
 
 }
