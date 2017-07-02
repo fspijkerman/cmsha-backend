@@ -27,3 +27,6 @@ target
 # IntelliJ
 .idea
 *.iml
+
+# Test scripts
+*.sh

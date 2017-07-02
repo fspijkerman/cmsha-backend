@@ -22,6 +22,8 @@ import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -40,12 +42,18 @@ import java.util.Optional;
 public class TitanDispatcher {
 
     private String baseUrl;
+
+    @Autowired
+    @Qualifier("titanRestTemplate")
     private RestTemplate restTemplate;
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
 
     @Value("${titan.webapi.url}")
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-        restTemplate = new RestTemplate();
     }
 
     public String getVersion() {
