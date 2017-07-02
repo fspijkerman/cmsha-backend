@@ -217,6 +217,19 @@ public class TitanDispatcher {
         executeTitanScriptCall(requestUrl);
     }
 
+    public void playbacksPlayback(int titanId, float level, float accuracy) {
+        DecimalFormat formatter = new DecimalFormat("#.###");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/titan/script/2/Playbacks/PlayPlayback")
+                .queryParam("handle_titanId", titanId)
+                .queryParam("level", formatter.format(level))
+                .queryParam("accuracy", formatter.format(accuracy));
+
+        String requestUrl = builder.build().encode().toString();
+        executeTitanScriptCall(requestUrl);
+    }
+
     public void playbacksReplacePlaybackCue(int titanId, boolean updateOnly) {
         DecimalFormat formatter = new DecimalFormat("#.###");
 

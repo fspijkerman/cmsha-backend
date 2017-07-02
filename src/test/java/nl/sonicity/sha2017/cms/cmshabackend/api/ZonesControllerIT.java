@@ -16,6 +16,7 @@
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import org.junit.Assert;
 import org.junit.Test;
@@ -104,7 +105,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
 
-        Zone zone = new Zone("TestZone");
+        ExtendedZone zone = new ExtendedZone("TestZone1", "Dim 1");
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -121,7 +122,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
 
-        Zone zone = new Zone("TestZone");
+        ExtendedZone zone = new ExtendedZone("TestZone2", "Dim 2");
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
