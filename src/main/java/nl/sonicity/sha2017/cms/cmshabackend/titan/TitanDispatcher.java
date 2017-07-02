@@ -20,6 +20,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.RequestFailedExcept
 import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.ValueOutOfRangeException;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -96,12 +97,12 @@ public class TitanDispatcher {
     }
 
     // curl "http://10.71.96.105:4430/titan/script/2/Handles/GetHandle?group=Fixtures&index=80&page=3"
-    public Optional<Handle> getHandleByLocation(String group, int index, int page) {
+    public Optional<Handle> getHandleByLocation(HandleLocation handleLocation) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Handles/GetHandle")
-                .queryParam("group", group)
-                .queryParam("index", index)
-                .queryParam("page", page);
+                .queryParam("group", handleLocation.getGroup())
+                .queryParam("index", handleLocation.getIndex())
+                .queryParam("page", handleLocation.getPage());
 
         return Optional.ofNullable(restTemplate
                 .getForObject(builder.build().encode().toString(), Handle.class));
@@ -284,7 +285,7 @@ public class TitanDispatcher {
     public void setProgrammerBlindActive(boolean blindActive) {
         // or http://[ip]:4430/titan/script/2/ActionScript/SetProperty/Boolean?id=Programmer.BlindActive&value=true
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("//titan/set/2/Programmer/BlindActive");
+                .path("/titan/set/2/Programmer/BlindActive");
 
         String requestUrl = builder.build().encode().toString();
 

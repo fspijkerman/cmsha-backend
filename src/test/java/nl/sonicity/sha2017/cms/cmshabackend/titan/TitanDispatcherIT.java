@@ -17,6 +17,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,13 +115,82 @@ public class TitanDispatcherIT {
                 .filter(group -> group.getLegend().equals(testGroup))
                 .findFirst().orElseThrow(() -> new Exception("No handle " + testGroup + " Found"));
 
+        // Setting Blind clears the selection
+        titanDispatcher.setProgrammerBlindActive(true);
+        titanDispatcher.programmerSetBlindMode(false, 0);
+
         titanDispatcher.groupRecallGroupById(handle.getTitanId());
-        titanDispatcher.programmerEditorFixturesLocateSelectedFixtures(false);
+
+        assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(true));
+
+        // Set Dimmer 100%
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
+
+        // Set Red 100%
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, 0f, true, false);
+
+        // Set Green 8%
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, 1f, true, false);
+
+        // Set Blue 0%
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, 0f, true, false);
+
+        // Set Macro "Safe"
+        // Set Mode "Dimmer"
+
+        HandleLocation cueLocation = new HandleLocation("PlaybackWindow", 0, 0);
+
+        // Check contents of the target location
+        Optional<Handle> currentHandle = titanDispatcher.getHandleByLocation(cueLocation);
+        assertThat(currentHandle.isPresent(), equalTo(false));
+
+        titanDispatcher.playbacksStoreCue(cueLocation.getGroup(), cueLocation.getIndex(), true);
+
+        Handle createdHandle = titanDispatcher.getHandleByLocation(cueLocation)
+                .orElseThrow(() -> new Exception("Handle not found by location"));
+
+        titanDispatcher.playbacksSelectionClear();
+        titanDispatcher.programmerEditorClearAll();
+
+        titanDispatcher.playbacksSelectEditHandle(createdHandle.getTitanId());
+        titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
+
+        int priority = titanDispatcher.getPlaybacksPlaybackOptionsPriority();
+
+        assertThat(75, equalTo(priority));
+
+        titanDispatcher.playbacksPlaybackEditExit();
+
+        titanDispatcher.playbacksSelectionClear();
+        titanDispatcher.programmerEditorClearAll();
 
         titanDispatcher.setProgrammerBlindActive(false);
         titanDispatcher.programmerSetBlindMode(false, 0);
 
-        assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(false));
+
+    }
+
+    @Test
+    public void replaceHighPrioColorCue() throws Exception {
+        String showname = titanDispatcher.getShowName();
+        assertThat("This test depends a matching show loaded in the titan", showname, equalTo(showname));
+
+        titanDispatcher.playbacksSelectionClear();
+        titanDispatcher.programmerEditorClearAll();
+
+        // Select group
+        Handle handle = titanDispatcher.listGroups()
+                .stream()
+                .filter(group -> group.getLegend().equals(testGroup))
+                .findFirst().orElseThrow(() -> new Exception("No handle " + testGroup + " Found"));
+
+        // Setting Blind clears the selection
+        titanDispatcher.setProgrammerBlindActive(true);
+        titanDispatcher.programmerSetBlindMode(false, 0);
+
+        titanDispatcher.groupRecallGroupById(handle.getTitanId());
+
+        assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(true));
 
         // Set Dimmer 100%
         titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
@@ -138,19 +208,16 @@ public class TitanDispatcherIT {
         // Set Mode "Dimmer"
 
         // Check contents of the target location
-        Optional<Handle> currentHandle = titanDispatcher.getHandleByLocation("PlaybackWindow", 1, 0);
+        HandleLocation cueLocation = new HandleLocation("PlaybackWindow", 0, 0);
+        Handle currentHandle = titanDispatcher.getHandleByLocation(cueLocation)
+                .orElseThrow(() -> new Exception("Handle not found"));
 
-        if (currentHandle.isPresent()) {
-            titanDispatcher.playbacksReplacePlaybackCue(currentHandle.get().getTitanId(), false);
-        } else {
-            titanDispatcher.playbacksStoreCue("PlaybackWindow", 1, true);
-            currentHandle = titanDispatcher.getHandleByLocation("PlaybackWindow", 1, 0);
-        }
+        titanDispatcher.playbacksReplacePlaybackCue(currentHandle.getTitanId(), false);
 
         titanDispatcher.playbacksSelectionClear();
         titanDispatcher.programmerEditorClearAll();
 
-        titanDispatcher.playbacksSelectEditHandle(currentHandle.get().getTitanId());
+        titanDispatcher.playbacksSelectEditHandle(currentHandle.getTitanId());
         titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
 
         int priority = titanDispatcher.getPlaybacksPlaybackOptionsPriority();

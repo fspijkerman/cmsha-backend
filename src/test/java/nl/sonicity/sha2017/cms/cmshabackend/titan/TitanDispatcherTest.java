@@ -18,6 +18,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.titan;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.RequestFailedException;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -280,7 +281,7 @@ public class TitanDispatcherTest {
                         .withBody("{\"handleLocation\":{\"group\":\"Fixtures\",\"index\":80,\"page\":3},\"properties\":[{\"Key\":\"lockState\",\"Value\":\"Unlocked\"}],"
                                 + "\"titanId\":3514,\"type\":\"fixtureHandle\",\"Active\":false,\"Legend\":\"\"}"));
 
-        Optional<Handle> handle = titanDispatcher.getHandleByLocation("fixtures", 80, 3);
+        Optional<Handle> handle = titanDispatcher.getHandleByLocation(new HandleLocation("fixtures", 80, 3));
 
         assertThat(handle.isPresent(), equalTo(true));
         assertThat(3514, equalTo(handle.get().getTitanId()));
@@ -300,7 +301,7 @@ public class TitanDispatcherTest {
                         .updateHeader("Content-Length","0")
                         .withBody(""));
 
-        Optional<Handle> handle = titanDispatcher.getHandleByLocation("fixtures", 3, 1);
+        Optional<Handle> handle = titanDispatcher.getHandleByLocation(new HandleLocation("fixtures", 3, 1));
 
         assertThat(false, equalTo(handle.isPresent()));
 
@@ -436,5 +437,21 @@ public class TitanDispatcherTest {
                 .request("/titan/script/2/Playbacks/PlaybackEdit/Exit")
                 .withBody(""));
     }
+
+    @Test
+    public void setProgrammerBlindActive() throws Exception {
+        clientAndServer
+                .when(HttpRequest.request("/titan/set/2/Programmer/BlindActive"))
+                .respond(HttpResponse.response()
+                        .updateHeader("Content-Length","0")
+                        .withBody(""));
+
+        titanDispatcher.setProgrammerBlindActive(true);
+
+        clientAndServer.verify(HttpRequest
+                .request("/titan/set/2/Programmer/BlindActive")
+                .withBody("true"));
+    }
+
 
 }
