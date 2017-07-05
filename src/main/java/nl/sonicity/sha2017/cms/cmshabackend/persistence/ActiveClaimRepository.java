@@ -15,18 +15,11 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.persistence;
 
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.Collection;
-import java.util.Optional;
-
 /**
- * Created by hugo on 02/07/2017.
+ * Created by hugo on 05/07/2017.
  */
-public interface ZoneMappingRepository extends CrudRepository<ZoneMapping, Long> {
-
-    Optional<ZoneMapping> findOneByZoneName(String zoneName);
-
-    Collection<ZoneMapping> findByActiveClaimIsNotNull();
+public interface ActiveClaimRepository extends CrudRepository<ActiveClaim, Long> {
 }

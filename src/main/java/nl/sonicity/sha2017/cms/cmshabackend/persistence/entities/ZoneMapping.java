@@ -38,6 +38,9 @@ public class ZoneMapping implements Serializable {
     @Column
     private Integer titanGroupId;
 
+    @OneToOne(cascade = CascadeType.REMOVE)
+    private ActiveClaim activeClaim;
+
     protected ZoneMapping() {}
 
     public ZoneMapping(String zoneName, String titanGroupName, Integer titanGroupId) {
@@ -60,5 +63,13 @@ public class ZoneMapping implements Serializable {
 
     public Integer getTitanGroupId() {
         return titanGroupId;
+    }
+
+    public ActiveClaim getActiveClaim() {
+        return activeClaim;
+    }
+
+    public void setActiveClaim(ActiveClaim activeClaim) {
+        this.activeClaim = activeClaim;
     }
 }

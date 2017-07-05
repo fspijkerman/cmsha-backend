@@ -20,6 +20,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.ValueOutOfRangeExce
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -28,6 +29,7 @@ import java.util.Optional;
  * Created by hugo on 02/07/2017.
  */
 @Component
+@Profile("default")
 public class TitanServiceImpl implements TitanService {
     private TitanDispatcher titanDispatcher;
 

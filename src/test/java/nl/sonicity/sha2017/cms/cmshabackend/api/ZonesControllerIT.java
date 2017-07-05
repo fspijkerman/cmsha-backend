@@ -18,12 +18,20 @@ package nl.sonicity.sha2017.cms.cmshabackend.api;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -37,15 +45,18 @@ import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.googlecode.catchexception.apis.CatchExceptionHamcrestMatchers.hasMessage;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyFloat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by hugo on 02/07/2017.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestEntityManager
 @TestPropertySource(locations="classpath:integrationtest.properties")
 public class ZonesControllerIT {
     @LocalServerPort
@@ -53,6 +64,18 @@ public class ZonesControllerIT {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
+    private ZoneMappingRepository zoneMappingRepository;
+
+    @Autowired
+    private ActiveClaimRepository activeClaimRepository;
+
+    @MockBean
+    private TitanService titanService;
 
     @Test
     public void testZonesListAnonymous() throws Exception {
@@ -118,6 +141,9 @@ public class ZonesControllerIT {
 
     @Test
     public void testClaimZone() throws Exception {
+        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
+        when(titanService.groupExists(any())).thenReturn(true);
+
         // Create the zone as admin fro now
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
@@ -130,5 +156,15 @@ public class ZonesControllerIT {
 
         Claim claim = new Claim(1,1, 1);
         restTemplate.put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, zone.getName());
+
+        assertThat(activeClaimRepository.findAll().iterator().hasNext(), equalTo(true));
+        ActiveClaim activeClaim = activeClaimRepository.findAll().iterator().next();
+        assertThat(activeClaim.getZoneMapping().getZoneName(), equalTo("TestZone2"));
+
+        ZoneMapping persistedZone = zoneMappingRepository.findOneByZoneName("TestZone2")
+                .orElseThrow(() -> new Exception("Persisted zone not found"));
+
+        assertThat(persistedZone.getActiveClaim(), not(nullValue()));
+
     }
 }

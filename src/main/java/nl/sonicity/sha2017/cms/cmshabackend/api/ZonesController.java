@@ -18,13 +18,17 @@ package nl.sonicity.sha2017.cms.cmshabackend.api;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
@@ -37,10 +41,12 @@ import java.util.stream.StreamSupport;
 @RequestMapping("/zones")
 public class ZonesController {
     private ZoneMappingRepository zoneMappingRepository;
+    private ActiveClaimRepository activeClaimRepository;
     private TitanService titanService;
 
-    public ZonesController(ZoneMappingRepository zoneMappingRepository, TitanService titanService) {
+    public ZonesController(ZoneMappingRepository zoneMappingRepository, ActiveClaimRepository activeClaimRepository, TitanService titanService) {
         this.zoneMappingRepository = zoneMappingRepository;
+        this.activeClaimRepository = activeClaimRepository;
         this.titanService = titanService;
     }
 
@@ -71,6 +77,12 @@ public class ZonesController {
 
         int playbackId = titanService.createRgbCue(zoneMapping.getTitanGroupName(), claim.getRed(), claim.getGreen(), claim.getBlue());
         titanService.activateCue(playbackId);
+
+        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofMinutes(10), playbackId);
+        activeClaimRepository.save(activeClaim);
+
+        zoneMapping.setActiveClaim(activeClaim);
+        zoneMappingRepository.save(zoneMapping);
 
         return new Zone(zoneMapping.getZoneName());
     }
