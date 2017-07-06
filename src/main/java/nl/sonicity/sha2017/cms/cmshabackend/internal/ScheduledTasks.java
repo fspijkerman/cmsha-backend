@@ -42,8 +42,6 @@ public class ScheduledTasks {
 
     @Scheduled(fixedRate = 5000)
     public void expireClaims() {
-        LOG.info("The time is now {}", LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-
         zoneMappingRepository.findByActiveClaimIsNotNull().forEach(zoneMapping -> {
             ActiveClaim activeClaim = zoneMapping.getActiveClaim();
             if (activeClaim.getCreated().plus(activeClaim.getExpiration()).isBefore(LocalDateTime.now())) {
