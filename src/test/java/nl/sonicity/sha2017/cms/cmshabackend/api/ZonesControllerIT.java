@@ -49,6 +49,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyFloat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 /**

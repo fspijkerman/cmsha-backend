@@ -24,6 +24,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -37,6 +38,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:integrationtest.properties")
+@ActiveProfiles("mock-titan")
 public class ActuatorsIT {
     @LocalServerPort
     private int localServerPort;
@@ -45,18 +47,20 @@ public class ActuatorsIT {
     private RestTemplate restTemplate;
 
     @Test
-    public void testZonesListAnonymous() throws Exception {
+    public void testHealthAnonymous() throws Exception {
+        // Should only give the consolidated status
         String health = restTemplate.getForObject("http://localhost:{port}/health/", String.class, localServerPort);
         assertThat(health, equalTo("boom"));
     }
 
     @Test
-    public void testZonesListWithAdminApiKey() throws Exception {
+    public void testHealthWithAdminApiKey() throws Exception {
+        // Should give the complete status
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
 
         HttpEntity<String> entity = new HttpEntity<String>(null,headers);
-        ResponseEntity<String> responseEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.GET, entity,String.class, localServerPort);
+        ResponseEntity<String> responseEntity = restTemplate.exchange("http://localhost:{port}/health/", HttpMethod.GET, entity,String.class, localServerPort);
         assertThat(responseEntity.getBody(), equalTo("boom"));
     }
 

@@ -26,4 +26,8 @@ public interface TitanService {
     void activateCue(int cueId);
 
     void deactivateCue(int cueId);
+
+    TitanStatus getStatus();
+
+    String getTitanUrl();
 }

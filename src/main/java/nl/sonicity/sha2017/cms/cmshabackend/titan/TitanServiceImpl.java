@@ -99,8 +99,6 @@ public class TitanServiceImpl implements TitanService {
         titanDispatcher.playbacksSelectEditHandle(playbackHandle.getTitanId());
         titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
 
-        int priority = titanDispatcher.getPlaybacksPlaybackOptionsPriority();
-
         titanDispatcher.playbacksPlaybackEditExit();
 
         titanDispatcher.playbacksSelectionClear();
@@ -110,6 +108,18 @@ public class TitanServiceImpl implements TitanService {
         titanDispatcher.programmerSetBlindMode(false, 0);
 
         return playbackHandle.getTitanId();
+    }
+
+    @Override
+    public TitanStatus getStatus() {
+        String showName = titanDispatcher.getShowName();
+        String titanVersion = titanDispatcher.getVersion();
+        return new TitanStatus(showName, titanVersion);
+    }
+
+    @Override
+    public String getTitanUrl() {
+        return titanDispatcher.getBaseUrl();
     }
 
     @Override

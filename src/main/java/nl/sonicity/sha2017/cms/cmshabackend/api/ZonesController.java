@@ -39,6 +39,7 @@ import java.util.stream.StreamSupport;
  */
 @RestController
 @RequestMapping("/zones")
+@CrossOrigin(origins = "*")
 public class ZonesController {
     private ZoneMappingRepository zoneMappingRepository;
     private ActiveClaimRepository activeClaimRepository;

@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.api;
-
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
 /**
- * Created by hugo on 04/07/2017.
+ * Created by htrippaers on 07/07/2017.
  */
-@Configuration
-public class FilterConfiguration {
+public class TitanStatus {
+    private String showName;
+    private String titanVersion;
 
-    @Bean
-    public FilterRegistrationBean corsFilter() {
-        FilterRegistrationBean bean = new FilterRegistrationBean(new ApiDocsCorsFilter());
-        bean.setOrder(0);
-        return bean;
+    public TitanStatus(String showName, String titanVersion) {
+        this.showName = showName;
+        this.titanVersion = titanVersion;
+    }
+
+    public String getShowName() {
+        return showName;
+    }
+
+    public String getTitanVersion() {
+        return titanVersion;
     }
 }

@@ -53,4 +53,14 @@ public class TitanServiceMockImpl implements TitanService {
     public void deactivateCue(int cueId) {
         LOG.info("TitanServiceMock: deactivateCue({})", cueId);
     }
+
+    @Override
+    public TitanStatus getStatus() {
+        return new TitanStatus("TitanMock", "10.1");
+    }
+
+    @Override
+    public String getTitanUrl() {
+        return "local://mock";
+    }
 }

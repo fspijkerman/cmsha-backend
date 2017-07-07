@@ -26,21 +26,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class TitanDispatcherHealthIndicator implements HealthIndicator {
     @Autowired
-    private TitanDispatcher titanDispatcher;
+    private TitanService titanService;
 
     @Override
     public Health health() {
         try {
-            String showName = titanDispatcher.getShowName();
-            String titanVersion = titanDispatcher.getVersion();
+            TitanStatus titanStatus = titanService.getStatus();
             return Health.up()
-                    .withDetail("showName", showName)
-                    .withDetail("titanVersion", titanVersion)
-                    .withDetail("titanBaseUrl", titanDispatcher.getBaseUrl())
+                    .withDetail("showName", titanStatus.getShowName())
+                    .withDetail("titanVersion", titanStatus.getTitanVersion())
+                    .withDetail("titanBaseUrl", titanService.getTitanUrl())
                     .build();
         } catch (Exception e) {
             return Health.down()
-                    .withDetail("titanBaseUrl", titanDispatcher.getBaseUrl())
+                    .withDetail("titanBaseUrl", titanService.getTitanUrl())
                     .withException(e)
                     .build();
         }
