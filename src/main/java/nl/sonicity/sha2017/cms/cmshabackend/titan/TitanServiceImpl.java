@@ -31,6 +31,7 @@ import java.util.Optional;
 @Component
 @Profile("default")
 public class TitanServiceImpl implements TitanService {
+    private final static Object LOCK = new Object();
     private TitanDispatcher titanDispatcher;
 
     public TitanServiceImpl(TitanDispatcher titanDispatcher) {
@@ -39,82 +40,88 @@ public class TitanServiceImpl implements TitanService {
 
     @Override
     public boolean groupExists(String groupName) {
-        return titanDispatcher.listGroups().stream().anyMatch(g -> g.getLegend().equals(groupName));
+        synchronized (LOCK) {
+            return titanDispatcher.listGroups().stream().anyMatch(g -> g.getLegend().equals(groupName));
+        }
     }
 
     @Override
     public int createRgbCue(String groupName, float red, float green, float blue) {
-        titanDispatcher.playbacksSelectionClear();
-        titanDispatcher.programmerEditorClearAll();
+        synchronized (LOCK) {
+            titanDispatcher.playbacksSelectionClear();
+            titanDispatcher.programmerEditorClearAll();
 
-        // Select group
-        Handle handle = titanDispatcher.listGroups()
-                .stream()
-                .filter(group -> group.getLegend().equals(groupName))
-                .findFirst().orElseThrow(() -> new ResourceNotFoundException("No handle " + groupName + " Found"));
+            // Select group
+            Handle handle = titanDispatcher.listGroups()
+                    .stream()
+                    .filter(group -> group.getLegend().equals(groupName))
+                    .findFirst().orElseThrow(() -> new ResourceNotFoundException("No handle " + groupName + " Found"));
 
-        // Setting Blind clears the selection
-        titanDispatcher.setProgrammerBlindActive(true);
-        titanDispatcher.programmerSetBlindMode(false, 0);
+            // Setting Blind clears the selection
+            titanDispatcher.setProgrammerBlindActive(true);
+            titanDispatcher.programmerSetBlindMode(false, 0);
 
-        titanDispatcher.groupRecallGroupById(handle.getTitanId());
+            titanDispatcher.groupRecallGroupById(handle.getTitanId());
 
-        try {
-            // Set Dimmer 100%
-            titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
+            try {
+                // Set Dimmer 100%
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
 
-            // Set Red 100%
-            titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, red, true, false);
+                // Set Red 100%
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, red, true, false);
 
-            // Set Green 8%
-            titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, green, true, false);
+                // Set Green 8%
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, green, true, false);
 
-            // Set Blue 0%
-            titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, blue, true, false);
-        } catch (ValueOutOfRangeException e) {
-            throw new IllegalStateException("Invalid arguments for internal function", e);
+                // Set Blue 0%
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, blue, true, false);
+            } catch (ValueOutOfRangeException e) {
+                throw new IllegalStateException("Invalid arguments for internal function", e);
+            }
+
+            // Set Macro "Safe"
+            // Set Mode "Dimmer"
+
+            HandleLocation cueLocation = new HandleLocation("PlaybackWindow", 0, 0);
+
+            // Check contents of the target location
+            Optional<Handle> currentHandle = titanDispatcher.getHandleByLocation(cueLocation);
+            Handle playbackHandle = null;
+
+            if (currentHandle.isPresent()) {
+                titanDispatcher.playbacksReplacePlaybackCue(currentHandle.get().getTitanId(), false);
+                playbackHandle = currentHandle.get();
+            } else {
+                titanDispatcher.playbacksStoreCue(cueLocation.getGroup(), cueLocation.getIndex(), true);
+                playbackHandle = titanDispatcher.getHandleByLocation(cueLocation)
+                        .orElseThrow(() -> new ResourceNotFoundException("Handle not found by location"));
+            }
+
+            titanDispatcher.playbacksSelectionClear();
+            titanDispatcher.programmerEditorClearAll();
+
+            titanDispatcher.playbacksSelectEditHandle(playbackHandle.getTitanId());
+            titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
+
+            titanDispatcher.playbacksPlaybackEditExit();
+
+            titanDispatcher.playbacksSelectionClear();
+            titanDispatcher.programmerEditorClearAll();
+
+            titanDispatcher.setProgrammerBlindActive(false);
+            titanDispatcher.programmerSetBlindMode(false, 0);
+
+            return playbackHandle.getTitanId();
         }
-
-        // Set Macro "Safe"
-        // Set Mode "Dimmer"
-
-        HandleLocation cueLocation = new HandleLocation("PlaybackWindow", 0, 0);
-
-        // Check contents of the target location
-        Optional<Handle> currentHandle = titanDispatcher.getHandleByLocation(cueLocation);
-        Handle playbackHandle = null;
-
-        if (currentHandle.isPresent()) {
-            titanDispatcher.playbacksReplacePlaybackCue(currentHandle.get().getTitanId(), false);
-            playbackHandle = currentHandle.get();
-        } else {
-            titanDispatcher.playbacksStoreCue(cueLocation.getGroup(), cueLocation.getIndex(), true);
-            playbackHandle = titanDispatcher.getHandleByLocation(cueLocation)
-                    .orElseThrow(() -> new ResourceNotFoundException("Handle not found by location"));
-        }
-
-        titanDispatcher.playbacksSelectionClear();
-        titanDispatcher.programmerEditorClearAll();
-
-        titanDispatcher.playbacksSelectEditHandle(playbackHandle.getTitanId());
-        titanDispatcher.setPlaybacksPlaybackOptionsPriority(75);
-
-        titanDispatcher.playbacksPlaybackEditExit();
-
-        titanDispatcher.playbacksSelectionClear();
-        titanDispatcher.programmerEditorClearAll();
-
-        titanDispatcher.setProgrammerBlindActive(false);
-        titanDispatcher.programmerSetBlindMode(false, 0);
-
-        return playbackHandle.getTitanId();
     }
 
     @Override
     public TitanStatus getStatus() {
-        String showName = titanDispatcher.getShowName();
-        String titanVersion = titanDispatcher.getVersion();
-        return new TitanStatus(showName, titanVersion);
+        synchronized (LOCK) {
+            String showName = titanDispatcher.getShowName();
+            String titanVersion = titanDispatcher.getVersion();
+            return new TitanStatus(showName, titanVersion);
+        }
     }
 
     @Override
@@ -124,11 +131,15 @@ public class TitanServiceImpl implements TitanService {
 
     @Override
     public void activateCue(int cueId) {
-        titanDispatcher.playbacksPlayback(cueId, 1, 1);
+        synchronized (LOCK) {
+            titanDispatcher.playbacksPlayback(cueId, 1, 1);
+        }
     }
 
     @Override
     public void deactivateCue(int cueId) {
-        titanDispatcher.playbacksPlayback(cueId, 0, 1);
+        synchronized (LOCK) {
+            titanDispatcher.playbacksPlayback(cueId, 0, 1);
+        }
     }
 }
