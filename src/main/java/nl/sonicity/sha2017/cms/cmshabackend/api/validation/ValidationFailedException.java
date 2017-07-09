@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.api.models;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package nl.sonicity.sha2017.cms.cmshabackend.api.validation;
 
 /**
- * Created by hugo on 02/07/2017.
+ * Created by hugo on 09/07/2017.
  */
-public class ExtendedZone extends Zone {
-    private String groupName;
-
-    @JsonCreator
-    public ExtendedZone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("groupName") String groupName) {
-        super(name, available);
-        this.groupName = groupName;
+public class ValidationFailedException extends RuntimeException {
+    public ValidationFailedException() {
+        super();
     }
 
-    public String getGroupName() {
-        return groupName;
+    public ValidationFailedException(String message) {
+        super(message);
+    }
+
+    public ValidationFailedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ValidationFailedException(Throwable cause) {
+        super(cause);
     }
 }

@@ -23,13 +23,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class Zone {
     private String name;
+    private Boolean available;
 
     @JsonCreator
-    public Zone(@JsonProperty("name") String name) {
+    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available) {
         this.name = name;
+        this.available = available;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Boolean getAvailable() {
+        return available;
     }
 }

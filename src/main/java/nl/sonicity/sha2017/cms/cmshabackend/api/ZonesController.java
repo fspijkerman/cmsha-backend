@@ -15,9 +15,13 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
+import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
@@ -52,14 +56,21 @@ public class ZonesController {
     }
 
     @RequestMapping(path="/", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @PreAuthorize("permitAll")
-    public List<Zone> listZones() {
+    @PreAuthorize("hasAuthority('ANONYMOUS') or hasRole('ROLE_ADMIN')")
+    public List<Zone> listZones(@RequestParam(name="showAvailableOnly", required = false, defaultValue = "false") boolean showAvailableOnly) {
         Spliterator<ZoneMapping> spliterator = zoneMappingRepository.findAll().spliterator();
-        return StreamSupport.stream(spliterator, false).map(m -> new Zone(m.getZoneName())).collect(Collectors.toList());
+        return StreamSupport
+                .stream(spliterator, false)
+                .filter(m -> !showAvailableOnly || (showAvailableOnly && m.getActiveClaim() == null))
+                .map(m -> new Zone(m.getZoneName(), m.getActiveClaim() == null))
+                .collect(Collectors.toList());
     }
 
     @RequestMapping(path="/", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "Required resource not found", response = ErrorDetail.class)
+    })
     public Zone newZone(@RequestBody ExtendedZone extendedZone) {
         if (!titanService.groupExists(extendedZone.getGroupName())) {
             throw new ResourceNotFoundException(String.format("No group with name \"%s\" is configured on the console", extendedZone.getGroupName()));
@@ -72,9 +83,22 @@ public class ZonesController {
 
     @RequestMapping(path="/{zoneName}/claim", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @PreAuthorize("hasAuthority('ANONYMOUS') or hasRole('ROLE_ADMIN')")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "Required resource not found", response = ErrorDetail.class),
+            @ApiResponse(code = 409, message = "Zone is already claimed", response = ErrorDetail.class),
+            @ApiResponse(code = 400, message = "Invalid input", response = ErrorDetail.class)
+    })
     public Zone claimZone(@PathVariable("zoneName") String zoneName, @RequestBody Claim claim) throws Exception {
+        ValidationHelpers.between(0, 1).test(claim.getBlue()).orThrow();
+        ValidationHelpers.between(0, 1).test(claim.getGreen()).orThrow();
+        ValidationHelpers.between(0, 1).test(claim.getRed()).orThrow();
+
         ZoneMapping zoneMapping = zoneMappingRepository.findOneByZoneName(zoneName)
                 .orElseThrow(() -> new ResourceNotFoundException("No mapping found for zone " + zoneName));
+
+        if (zoneMapping.getActiveClaim() != null) {
+            throw new ZoneAlreadyClaimedException("This zone is already claimed");
+        }
 
         int playbackId = titanService.createRgbCue(zoneMapping.getTitanGroupName(), claim.getRed(), claim.getGreen(), claim.getBlue());
         titanService.activateCue(playbackId);
@@ -85,6 +109,6 @@ public class ZonesController {
         zoneMapping.setActiveClaim(activeClaim);
         zoneMappingRepository.save(zoneMapping);
 
-        return new Zone(zoneMapping.getZoneName());
+        return new Zone(zoneMapping.getZoneName(), zoneMapping.getActiveClaim() == null);
     }
 }

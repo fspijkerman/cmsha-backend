@@ -18,6 +18,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.titan;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestPropertySource(locations="classpath:integrationtest.properties")
+@Ignore
 public class TitanDispatcherIT {
     @Autowired
     private TitanDispatcher titanDispatcher;

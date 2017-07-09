@@ -43,17 +43,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 cors()
                 .and()
                 .csrf()
-                    .disable().
-                sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS).
-                and().
-                authorizeRequests().
-                    antMatchers("/health/**")
-                        .hasRole(ROLE_ADMIN).
-                    anyRequest()
-                        .permitAll().
-                and().
-                    anonymous()
+                    .disable()
+                .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                    .anonymous()
                         .authorities(ROLE_ANONYMOUS);
 
         http

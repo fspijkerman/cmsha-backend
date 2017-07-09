@@ -16,6 +16,7 @@
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
+import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationFailedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,20 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         ErrorDetail bodyOfResponse = new ErrorDetail(ex.getMessage());
         return handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler(value = {ZoneAlreadyClaimedException.class})
+    protected ResponseEntity<Object> handleClaimedZone(RuntimeException ex, WebRequest request) {
+        ErrorDetail bodyOfResponse = new ErrorDetail(ex.getMessage());
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(value = {ValidationFailedException.class})
+    protected ResponseEntity<Object> handleInvalidArgument(RuntimeException ex, WebRequest request) {
+        ErrorDetail bodyOfResponse = new ErrorDetail(ex.getMessage());
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
 }

@@ -30,6 +30,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
@@ -50,7 +51,7 @@ public class ActuatorsIT {
     public void testHealthAnonymous() throws Exception {
         // Should only give the consolidated status
         String health = restTemplate.getForObject("http://localhost:{port}/health/", String.class, localServerPort);
-        assertThat(health, equalTo("boom"));
+        assertThat(health, equalTo("{\"status\":\"UP\"}"));
     }
 
     @Test
@@ -61,7 +62,7 @@ public class ActuatorsIT {
 
         HttpEntity<String> entity = new HttpEntity<String>(null,headers);
         ResponseEntity<String> responseEntity = restTemplate.exchange("http://localhost:{port}/health/", HttpMethod.GET, entity,String.class, localServerPort);
-        assertThat(responseEntity.getBody(), equalTo("boom"));
+        assertThat(responseEntity.getBody(), containsString("{\"status\":\"UP\",\"titanDispatcher\""));
     }
 
 }

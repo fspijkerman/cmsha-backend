@@ -24,12 +24,11 @@ import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
@@ -41,6 +40,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.googlecode.catchexception.apis.CatchExceptionHamcrestMatchers.hasMessage;
@@ -49,7 +51,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyFloat;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,7 +58,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestEntityManager
 @TestPropertySource(locations="classpath:integrationtest.properties")
 public class ZonesControllerIT {
     @LocalServerPort
@@ -65,9 +65,6 @@ public class ZonesControllerIT {
 
     @Autowired
     private RestTemplate restTemplate;
-
-    @Autowired
-    private TestEntityManager entityManager;
 
     @Autowired
     private ZoneMappingRepository zoneMappingRepository;
@@ -78,20 +75,35 @@ public class ZonesControllerIT {
     @MockBean
     private TitanService titanService;
 
+    @Before
+    public void setUp() throws Exception {
+        zoneMappingRepository.deleteAll();
+        activeClaimRepository.deleteAll();
+    }
+
     @Test
     public void testZonesListAnonymous() throws Exception {
+        prepareDatabase();
+
         Zone[] zones = restTemplate.getForObject("http://localhost:{port}/zones/", Zone[].class, localServerPort);
-        assertThat(zones.length, equalTo(0));
+        assertThat(zones.length, equalTo(2));
+        assertThat(zones[0].getName(), equalTo("Zone1"));
+        assertThat(zones[0].getAvailable(), equalTo(true));
+
+        assertThat(zones[1].getName(), equalTo("Zone2"));
+        assertThat(zones[1].getAvailable(), equalTo(false));
     }
 
     @Test
     public void testZonesListWithAdminApiKey() throws Exception {
+        prepareDatabase();
+
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
 
         HttpEntity<String> entity = new HttpEntity<String>(null,headers);
         ResponseEntity<Zone[]> zones = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.GET, entity, Zone[].class, localServerPort);
-        assertThat(zones.getBody().length, equalTo(0));
+        assertThat(zones.getBody().length, equalTo(2));
     }
 
     @Test
@@ -113,7 +125,7 @@ public class ZonesControllerIT {
 
     @Test
     public void testAddZoneAnonymous() throws Exception {
-        Zone zone = new Zone("TestZone");
+        Zone zone = new Zone("TestZone", true);
         catchException(restTemplate).postForObject("http://localhost:{port}/zones/", zone, Zone.class, localServerPort);
 
         Assert.assertThat(caughtException(),
@@ -126,22 +138,61 @@ public class ZonesControllerIT {
 
     @Test
     public void testAddZoneWithApiKey() throws Exception {
+        when(titanService.groupExists(any())).thenReturn(true);
+
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
 
-        ExtendedZone zone = new ExtendedZone("TestZone1", "Dim 1");
+        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1");
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
         assertThat(createdZoneEntity.getBody().getName(), equalTo(zone.getName()));
+        assertThat(createdZoneEntity.getBody().getAvailable(), equalTo(true));
 
-        HttpEntity<Void> voidHttpEntity = new HttpEntity<>(null, headers);
-        ResponseEntity<Zone[]> zones = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.GET, voidHttpEntity, Zone[].class, localServerPort);
-        assertThat(zones.getBody().length, equalTo(1));
+        assertThat(zoneMappingRepository.findOneByZoneName("TestZone1").isPresent(), equalTo(true));
     }
 
     @Test
     public void testClaimZone() throws Exception {
+        prepareDatabase();
+
+        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
+        when(titanService.groupExists(any())).thenReturn(true);
+
+        Claim claim = new Claim(1,1, 1);
+        restTemplate.put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone1");
+
+        assertThat(activeClaimRepository.findAll().iterator().hasNext(), equalTo(true));
+
+        ZoneMapping persistedZone = zoneMappingRepository.findOneByZoneName("Zone1")
+                .orElseThrow(() -> new Exception("Persisted zone not found"));
+
+        assertThat(persistedZone.getActiveClaim(), not(nullValue()));
+    }
+
+    @Test
+    public void testClaimZoneWithInvalidValue() throws Exception {
+        prepareDatabase();
+
+        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
+        when(titanService.groupExists(any())).thenReturn(true);
+
+        Claim claim = new Claim(1,1, 9);
+        catchException(restTemplate).put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone1");
+
+        Assert.assertThat(caughtException(),
+                allOf(
+                        instanceOf(HttpClientErrorException.class),
+                        hasMessage("400 null")
+                )
+        );
+    }
+
+    @Test
+    public void testClaimZoneAlreadyClaimed() throws Exception {
+        prepareDatabase();
+
         when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
         when(titanService.groupExists(any())).thenReturn(true);
 
@@ -149,23 +200,26 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
 
-        ExtendedZone zone = new ExtendedZone("TestZone2", "Dim 2");
-        HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
-        ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
-
-        assertThat(createdZoneEntity.getBody().getName(), equalTo(zone.getName()));
-
         Claim claim = new Claim(1,1, 1);
-        restTemplate.put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, zone.getName());
+        catchException(restTemplate).put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone2");
 
-        assertThat(activeClaimRepository.findAll().iterator().hasNext(), equalTo(true));
-        ActiveClaim activeClaim = activeClaimRepository.findAll().iterator().next();
-        assertThat(activeClaim.getZoneMapping().getZoneName(), equalTo("TestZone2"));
+        Assert.assertThat(caughtException(),
+                allOf(
+                        instanceOf(HttpClientErrorException.class),
+                        hasMessage("409 null")
+                )
+        );
 
-        ZoneMapping persistedZone = zoneMappingRepository.findOneByZoneName("TestZone2")
-                .orElseThrow(() -> new Exception("Persisted zone not found"));
+    }
 
-        assertThat(persistedZone.getActiveClaim(), not(nullValue()));
+    private void prepareDatabase() {
+        ZoneMapping zoneMapping = new ZoneMapping("Zone1", "Group 1", 1111);
+        zoneMappingRepository.save(zoneMapping);
 
+        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), 1113);
+        zoneMapping = new ZoneMapping("Zone2", "Group 2", 1112);
+        zoneMapping.setActiveClaim(activeClaim);
+        activeClaimRepository.save(activeClaim);
+        zoneMappingRepository.save(zoneMapping);
     }
 }

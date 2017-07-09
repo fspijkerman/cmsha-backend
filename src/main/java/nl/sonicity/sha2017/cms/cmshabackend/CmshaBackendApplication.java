@@ -19,11 +19,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiKey;
-import springfox.documentation.service.AuthorizationScope;
-import springfox.documentation.service.SecurityReference;
+import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -49,7 +48,17 @@ public class CmshaBackendApplication {
 				.paths(PathSelectors.any())
 				.build()
 				.securitySchemes(Collections.singletonList(apiKey()))
-                .securityContexts(Collections.singletonList(securityContext()));
+                .securityContexts(Collections.singletonList(securityContext()))
+				.apiInfo(metadata());
+	}
+
+	private ApiInfo metadata() {
+		return new ApiInfoBuilder()
+				.title("ColorMySHA API")
+				.description("Backend API for communicating with the Titan Console")
+				.version("0.0.1")
+				.contact(new Contact("Hugo Trippaers", null, null))
+				.build();
 	}
 
 	private ApiKey apiKey() {
@@ -69,6 +78,6 @@ public class CmshaBackendApplication {
 		AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
 		authorizationScopes[0] = authorizationScope;
 		return Collections.singletonList(
-				new SecurityReference("mykey", authorizationScopes));
+				new SecurityReference("ApiKey", authorizationScopes));
 	}
 }
