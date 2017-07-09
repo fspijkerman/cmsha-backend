@@ -16,6 +16,7 @@
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
 import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -37,6 +38,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public final static String ROLE_ADMIN = "ADMIN";
     public final static String ROLE_ANONYMOUS = "ANONYMOUS";
 
+    @Autowired
+    public ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.
@@ -56,7 +60,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(new ApiKeyAuthenticationProvider());
+        auth.authenticationProvider(apiKeyAuthenticationProvider);
     }
 
     @Bean

@@ -15,27 +15,82 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.io.DataInputStream;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 /**
  * Created by hugo on 02/07/2017.
  */
+@Component
 public class ApiKeyAuthenticationProvider implements org.springframework.security.authentication.AuthenticationProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(ApiKeyAuthenticationProvider.class);
+
+    private PublicKey validationKey;
+
+    @PostConstruct
+    public void initializeCertificates() {
+        try {
+            ClassPathResource classPathResource = new ClassPathResource("jwtRS256.key.pub");
+            DataInputStream dis = new DataInputStream(classPathResource.getInputStream());
+            byte[] keyBytes = new byte[dis.available()];
+            dis.readFully(keyBytes);
+            dis.close();
+
+            String temp = new String(keyBytes);
+            String publicKeyPEM = temp.replace("-----BEGIN PUBLIC KEY-----\n", "");
+            publicKeyPEM = publicKeyPEM.replaceAll("\n", "");
+            publicKeyPEM = publicKeyPEM.replace("-----END PUBLIC KEY-----", "");
+
+            byte[] decoded = Base64.getDecoder().decode(publicKeyPEM);
+            X509EncodedKeySpec spec =
+                    new X509EncodedKeySpec(decoded);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            validationKey = kf.generatePublic(spec);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to configure the JWT secret", e);
+        }
+    }
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String apiKey = (String) authentication.getPrincipal();
 
-        if ("myadmintesttoken".equals(apiKey)) {
+        try {
+            Jws<Claims> claims = Jwts.parser()
+                    .setSigningKey(validationKey)
+                    .parseClaimsJws(apiKey);
+
             PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(apiKey, null,
                     AuthorityUtils.createAuthorityList("ROLE_ADMIN", "ACTUATOR"));
             authenticationToken.setAuthenticated(true);
+            LOG.info("ApiKey verified, granting admin and actuator roles to {}", claims.getBody().getSubject());
             return authenticationToken;
+        } catch (SignatureException e) {
+            //don't trust the JWT!
+            LOG.error("ApiKey failed validation", e);
+            throw new BadCredentialsException(String.format("ApiKey \"%s\" failed signature validation", apiKey));
+        } catch (Exception e) {
+            LOG.error("ApiKey validation failed due to error", e);
+            throw new BadCredentialsException("Unable to validate supplied ApiKey", e);
         }
-        throw new BadCredentialsException(String.format("ApiKey %s is not valid", apiKey));
     }
 
     @Override

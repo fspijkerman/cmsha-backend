@@ -22,7 +22,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.GenericFilterBean;
-import org.springframework.web.util.UrlPathHelper;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -51,8 +50,6 @@ public class AuthenticationFilter extends GenericFilterBean {
         HttpServletResponse httpResponse = asHttp(response);
 
         Optional<String> apiKey = Optional.ofNullable(httpRequest.getHeader(APIKEY_HEADER));
-
-        String resourcePath = new UrlPathHelper().getPathWithinApplication(httpRequest);
 
         try {
             if (apiKey.isPresent()) {
