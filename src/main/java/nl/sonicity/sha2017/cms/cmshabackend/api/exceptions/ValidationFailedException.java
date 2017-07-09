@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.api;
+package nl.sonicity.sha2017.cms.cmshabackend.api.exceptions;
 
 /**
  * Created by hugo on 09/07/2017.
  */
-public class ZoneAlreadyClaimedException extends RuntimeException {
-    public ZoneAlreadyClaimedException() {
+public class ValidationFailedException extends RuntimeException {
+    public ValidationFailedException() {
         super();
     }
 
-    public ZoneAlreadyClaimedException(String message) {
+    public ValidationFailedException(String message) {
         super(message);
     }
 
-    public ZoneAlreadyClaimedException(String message, Throwable cause) {
+    public ValidationFailedException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ZoneAlreadyClaimedException(Throwable cause) {
+    public ValidationFailedException(Throwable cause) {
         super(cause);
     }
 }

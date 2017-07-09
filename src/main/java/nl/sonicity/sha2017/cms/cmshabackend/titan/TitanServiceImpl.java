@@ -15,7 +15,7 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
-import nl.sonicity.sha2017.cms.cmshabackend.api.ResourceNotFoundException;
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.ValueOutOfRangeException;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;

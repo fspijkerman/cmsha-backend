@@ -38,6 +38,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -154,6 +156,28 @@ public class ZonesControllerIT {
     }
 
     @Test
+    public void testAddExistingZoneWithApiKey() throws Exception {
+        prepareDatabase();
+
+        when(titanService.groupExists(any())).thenReturn(true);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(AuthenticationFilter.APIKEY_HEADER, "myadmintesttoken");
+
+        ExtendedZone zone = new ExtendedZone("Zone1", true, "Dim 1");
+        HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
+        catchException(restTemplate).exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
+
+        Assert.assertThat(caughtException(),
+                allOf(
+                        instanceOf(HttpClientErrorException.class),
+                        hasMessage("400 null")
+                )
+        );
+
+    }
+
+    @Test
     public void testClaimZone() throws Exception {
         prepareDatabase();
 
@@ -210,6 +234,26 @@ public class ZonesControllerIT {
                 )
         );
 
+    }
+
+    @Test
+    public void testUnhandledException() throws Exception {
+        prepareDatabase();
+
+        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenThrow(new ResourceAccessException("Simulated connection error"));
+
+        Claim claim = new Claim(1,1, 1);
+        catchException(restTemplate).put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone1");
+
+        Assert.assertThat(caughtException(),
+                allOf(
+                        instanceOf(HttpServerErrorException.class),
+                        hasMessage("500 null")
+                )
+        );
+
+        HttpServerErrorException e = caughtException();
+        assertThat(e.getResponseBodyAsString(), equalTo("{\"message\":\"Unhandled exception, please contact operator\"}"));
     }
 
     private void prepareDatabase() {

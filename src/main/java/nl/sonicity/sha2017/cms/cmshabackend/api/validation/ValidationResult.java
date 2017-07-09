@@ -15,6 +15,8 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.api.validation;
 
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ValidationFailedException;
+
 /**
  * Created by hugo on 09/07/2017.
  */

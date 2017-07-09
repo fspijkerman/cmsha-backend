@@ -15,6 +15,8 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ValidationFailedException;
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ZoneAlreadyClaimedException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
@@ -105,6 +107,7 @@ public class ZonesControllerTest {
         ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1");
 
         when(titanService.groupExists(any())).thenReturn(true);
+        when(zoneMappingRepository.findOneByZoneName(any())).thenReturn(Optional.empty());
 
         Zone createdZone = zonesController.newZone(extendedZone);
 
@@ -120,6 +123,24 @@ public class ZonesControllerTest {
         assertThat(captor.getValue().getActiveClaim(), equalTo(null));
         assertThat(captor.getValue().getTitanGroupName(), equalTo("Group 1"));
         assertThat(captor.getValue().getTitanGroupId(), is(nullValue()));
+    }
+
+    @Test
+    public void testDuplicateZone() throws Exception {
+        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1");
+
+        when(titanService.groupExists(any())).thenReturn(true);
+        when(zoneMappingRepository.findOneByZoneName(any())).thenReturn(Optional.of(new ZoneMapping("Zone1", "Group 1", 1111)));
+
+        catchException(zonesController).newZone(extendedZone);
+
+        assertThat(caughtException(),
+                allOf(
+                        instanceOf(ValidationFailedException.class),
+                        hasMessage("Zone with name \"Zone1\" already exists.")
+                )
+        );
+
     }
 
     @Test

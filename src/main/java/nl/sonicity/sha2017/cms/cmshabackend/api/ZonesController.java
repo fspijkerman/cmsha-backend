@@ -17,6 +17,9 @@ package nl.sonicity.sha2017.cms.cmshabackend.api;
 
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ValidationFailedException;
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ZoneAlreadyClaimedException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
@@ -57,6 +60,10 @@ public class ZonesController {
 
     @RequestMapping(path="/", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @PreAuthorize("hasAuthority('ANONYMOUS') or hasRole('ROLE_ADMIN')")
+    @ApiResponses({
+            @ApiResponse(code = 403, message = "Access is Denied", response = ErrorDetail.class),
+            @ApiResponse(code = 500, message = "Internal Error", response = ErrorDetail.class)
+    })
     public List<Zone> listZones(@RequestParam(name="showAvailableOnly", required = false, defaultValue = "false") boolean showAvailableOnly) {
         Spliterator<ZoneMapping> spliterator = zoneMappingRepository.findAll().spliterator();
         return StreamSupport
@@ -69,11 +76,18 @@ public class ZonesController {
     @RequestMapping(path="/", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @ApiResponses({
-            @ApiResponse(code = 404, message = "Required resource not found", response = ErrorDetail.class)
+            @ApiResponse(code = 404, message = "Required resource not found", response = ErrorDetail.class),
+            @ApiResponse(code = 400, message = "Invalid input", response = ErrorDetail.class),
+            @ApiResponse(code = 403, message = "Access is Denied", response = ErrorDetail.class),
+            @ApiResponse(code = 500, message = "Internal Error", response = ErrorDetail.class)
     })
     public Zone newZone(@RequestBody ExtendedZone extendedZone) {
         if (!titanService.groupExists(extendedZone.getGroupName())) {
             throw new ResourceNotFoundException(String.format("No group with name \"%s\" is configured on the console", extendedZone.getGroupName()));
+        }
+
+        if (zoneMappingRepository.findOneByZoneName(extendedZone.getName()).isPresent()) {
+            throw new ValidationFailedException("Zone with name \"" + extendedZone.getName() + "\" already exists.");
         }
 
         ZoneMapping zoneMapping = new ZoneMapping(extendedZone.getName(), extendedZone.getGroupName(), null);
@@ -86,7 +100,9 @@ public class ZonesController {
     @ApiResponses({
             @ApiResponse(code = 404, message = "Required resource not found", response = ErrorDetail.class),
             @ApiResponse(code = 409, message = "Zone is already claimed", response = ErrorDetail.class),
-            @ApiResponse(code = 400, message = "Invalid input", response = ErrorDetail.class)
+            @ApiResponse(code = 400, message = "Invalid input", response = ErrorDetail.class),
+            @ApiResponse(code = 403, message = "Access is Denied", response = ErrorDetail.class),
+            @ApiResponse(code = 500, message = "Internal Error", response = ErrorDetail.class)
     })
     public Zone claimZone(@PathVariable("zoneName") String zoneName, @RequestBody Claim claim) throws Exception {
         ValidationHelpers.between(0, 1).test(claim.getBlue()).orThrow();

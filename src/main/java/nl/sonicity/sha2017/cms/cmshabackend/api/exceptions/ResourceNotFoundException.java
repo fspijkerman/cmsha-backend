@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.api;
+package nl.sonicity.sha2017.cms.cmshabackend.api.exceptions;
 
 /**
  * Created by hugo on 02/07/2017.

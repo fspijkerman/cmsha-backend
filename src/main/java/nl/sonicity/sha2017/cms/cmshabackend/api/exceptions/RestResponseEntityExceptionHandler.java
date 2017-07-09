@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.api;
+package nl.sonicity.sha2017.cms.cmshabackend.api.exceptions;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
-import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -30,6 +32,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  */
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
     @ExceptionHandler(value = {ResourceNotFoundException.class})
     protected ResponseEntity<Object> handleResourceNotFound(RuntimeException ex, WebRequest request) {
@@ -50,6 +53,21 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         ErrorDetail bodyOfResponse = new ErrorDetail(ex.getMessage());
         return handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {AccessDeniedException.class})
+    protected ResponseEntity<Object> handleIAccessDenied(RuntimeException ex, WebRequest request) {
+        ErrorDetail bodyOfResponse = new ErrorDetail("Access is denied");
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+    }
+
+    @ExceptionHandler(value = {Exception.class})
+    protected ResponseEntity<Object> handleOther(Exception ex, WebRequest request) {
+        ErrorDetail bodyOfResponse = new ErrorDetail("Unhandled exception, please contact operator");
+        LOG.error("Unhandled Exception: {}", ex.getMessage(), ex);
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
 }
