@@ -1,0 +1,67 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: cmsha-backend
+  namespace: cmsha
+  annotations:
+    description: ColorMySHA Spring-boot backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cmsha-backend
+      version: latest
+  template:
+    metadata:
+      labels:
+        app: cmsha-backend
+        version: latest
+      annotations:
+        description: ColorMySHA Spring-boot backend
+    spec:
+      containers:
+      - name: cmsha-backend
+        image: hugot/cmsha-backend:latest
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: mock-titan
+#        - name: LOGSTASH_HOST
+#          value: logstash:4560
+#        - name: MARIADB_HOST
+#          value: localhost:3306
+#        - name: MARIADB_DATABASE
+#          value: cmshadb
+#        - name: MARIADB_USER
+#          value: cmsha-app
+#        - name: MARIADB_PASS
+#          value: secret
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:/health
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cmsha-backend-service
+  namespace: cmsha
+  description: ColorMySHA Spring-boot backend loadbalancer
+spec:
+  ports:
+  - port: 8000 
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: cmsha-backend
+    version: latest
+  type: LoadBalancer  
