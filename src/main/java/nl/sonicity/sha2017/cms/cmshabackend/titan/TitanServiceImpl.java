@@ -29,7 +29,7 @@ import java.util.Optional;
  * Created by hugo on 02/07/2017.
  */
 @Component
-@Profile("default")
+@Profile("!mock-titan")
 public class TitanServiceImpl implements TitanService {
     private final static Object LOCK = new Object();
     private TitanDispatcher titanDispatcher;
