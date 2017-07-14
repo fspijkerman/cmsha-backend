@@ -65,19 +65,3 @@ spec:
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: cmsha-backend-service
-  namespace: cmsha
-  description: ColorMySHA Spring-boot backend loadbalancer
-spec:
-  ports:
-  - port: 8000 
-    targetPort: 8080
-    protocol: TCP
-  selector:
-    app: cmsha-backend
-    version: latest
-  type: LoadBalancer  
