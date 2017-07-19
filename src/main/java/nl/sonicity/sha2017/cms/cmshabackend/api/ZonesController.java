@@ -28,6 +28,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.springframework.http.MediaType;
@@ -69,7 +70,7 @@ public class ZonesController {
         return StreamSupport
                 .stream(spliterator, false)
                 .filter(m -> !showAvailableOnly || (showAvailableOnly && m.getActiveClaim() == null))
-                .map(m -> new Zone(m.getZoneName(), m.getActiveClaim() == null))
+                .map(m -> new Zone(m.getZoneName(), m.getActiveClaim() == null, null))
                 .collect(Collectors.toList());
     }
 
@@ -119,12 +120,17 @@ public class ZonesController {
         int playbackId = titanService.createRgbCue(zoneMapping.getTitanGroupName(), claim.getRed(), claim.getGreen(), claim.getBlue());
         titanService.activateCue(playbackId);
 
-        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofMinutes(10), playbackId);
+        Colour claimColour = new Colour(claim.getRed(), claim.getGreen(), claim.getBlue());
+        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofMinutes(10), playbackId, claimColour);
         activeClaimRepository.save(activeClaim);
 
         zoneMapping.setActiveClaim(activeClaim);
         zoneMappingRepository.save(zoneMapping);
 
-        return new Zone(zoneMapping.getZoneName(), zoneMapping.getActiveClaim() == null);
+        //TODO claim a specific location  We can use the flag active is true to see which handles are active
+        // probably we need to make it so that we configure how many handles are available
+
+        return new Zone(zoneMapping.getZoneName(), zoneMapping.getActiveClaim() == null, null);
     }
+
 }

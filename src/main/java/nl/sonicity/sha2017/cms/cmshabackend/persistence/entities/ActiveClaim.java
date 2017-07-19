@@ -41,12 +41,16 @@ public class ActiveClaim implements Serializable {
     @Column(nullable = false)
     private Integer playbackTitanId;
 
+    @Embedded
+    Colour colour;
+
     protected ActiveClaim() {}
 
-    public ActiveClaim(LocalDateTime created, Duration expiration, Integer playbackTitanId) {
+    public ActiveClaim(LocalDateTime created, Duration expiration, Integer playbackTitanId, Colour colour) {
         this.created = created;
         this.expiration = expiration;
         this.playbackTitanId = playbackTitanId;
+        this.colour = colour;
     }
 
     public long getId() {
@@ -67,5 +71,9 @@ public class ActiveClaim implements Serializable {
 
     public Integer getPlaybackTitanId() {
         return playbackTitanId;
+    }
+
+    public Colour getColour() {
+        return colour;
     }
 }

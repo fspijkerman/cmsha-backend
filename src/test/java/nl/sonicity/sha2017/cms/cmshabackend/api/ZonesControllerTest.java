@@ -23,6 +23,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.junit.Before;
@@ -64,6 +65,7 @@ public class ZonesControllerTest {
     @Mock
     ActiveClaimRepository activeClaimRepository;
     private ZonesController zonesController;
+    protected static final Colour RED = new Colour(1, 0, 0);
 
     @Before
     public void setUp() throws Exception {
@@ -104,7 +106,7 @@ public class ZonesControllerTest {
 
     @Test
     public void testNewZone() throws Exception {
-        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1");
+        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1", null);
 
         when(titanService.groupExists(any())).thenReturn(true);
         when(zoneMappingRepository.findOneByZoneName(any())).thenReturn(Optional.empty());
@@ -127,7 +129,7 @@ public class ZonesControllerTest {
 
     @Test
     public void testDuplicateZone() throws Exception {
-        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1");
+        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1", null);
 
         when(titanService.groupExists(any())).thenReturn(true);
         when(zoneMappingRepository.findOneByZoneName(any())).thenReturn(Optional.of(new ZoneMapping("Zone1", "Group 1", 1111)));
@@ -168,7 +170,7 @@ public class ZonesControllerTest {
     @Test
     public void testNewClaimOnClaimedGroup() throws Exception {
         ZoneMapping zone1 = new ZoneMapping("Zone1", "Group 1", null);
-        zone1.setActiveClaim(new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), null));
+        zone1.setActiveClaim(new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), null, RED));
 
         when(zoneMappingRepository.findOneByZoneName("Zone1")).thenReturn(Optional.of(zone1));
         when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1111);
@@ -188,7 +190,7 @@ public class ZonesControllerTest {
         List<ZoneMapping> zones = new ArrayList<>();
 
         ZoneMapping unavailable = new ZoneMapping("Zone1", "Group1", null);
-        unavailable.setActiveClaim(new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), 1111));
+        unavailable.setActiveClaim(new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), 1111, RED));
         zones.add(unavailable);
 
         ZoneMapping available = new ZoneMapping("Zone2", "Group2", null);

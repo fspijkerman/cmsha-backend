@@ -28,4 +28,5 @@ spec:
   selector:
     app: cmsha-backend
     version: latest
-  type: LoadBalancer  
+  type: LoadBalancer
+  loadBalancerIP: 178.237.34.53

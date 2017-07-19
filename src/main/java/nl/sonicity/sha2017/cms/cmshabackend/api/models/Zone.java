@@ -24,11 +24,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Zone {
     private String name;
     private Boolean available;
+    private String colour;
 
     @JsonCreator
-    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available) {
+    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("colour") String colour) {
         this.name = name;
         this.available = available;
+        this.colour = colour;
     }
 
     public String getName() {
@@ -37,5 +39,9 @@ public class Zone {
 
     public Boolean getAvailable() {
         return available;
+    }
+
+    public String getColour() {
+        return colour;
     }
 }

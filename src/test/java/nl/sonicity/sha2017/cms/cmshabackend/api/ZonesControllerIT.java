@@ -21,6 +21,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.junit.Assert;
@@ -139,7 +140,7 @@ public class ZonesControllerIT {
 
     @Test
     public void testAddZoneAnonymous() throws Exception {
-        Zone zone = new Zone("TestZone", true);
+        Zone zone = new Zone("TestZone", true, null);
         catchException(restTemplate).postForObject("http://localhost:{port}/zones/", zone, Zone.class, localServerPort);
 
         Assert.assertThat(caughtException(),
@@ -157,7 +158,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
 
-        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1");
+        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1", null);
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -176,7 +177,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
 
-        ExtendedZone zone = new ExtendedZone("Zone1", true, "Dim 1");
+        ExtendedZone zone = new ExtendedZone("Zone1", true, "Dim 1", null);
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         catchException(restTemplate).exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -272,7 +273,7 @@ public class ZonesControllerIT {
         ZoneMapping zoneMapping = new ZoneMapping("Zone1", "Group 1", 1111);
         zoneMappingRepository.save(zoneMapping);
 
-        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), 1113);
+        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), 1113, new Colour(1,0,0));
         zoneMapping = new ZoneMapping("Zone2", "Group 2", 1112);
         zoneMapping.setActiveClaim(activeClaim);
         activeClaimRepository.save(activeClaim);

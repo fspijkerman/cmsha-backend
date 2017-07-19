@@ -17,6 +17,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.api.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 
 /**
  * Created by hugo on 02/07/2017.
@@ -25,8 +26,8 @@ public class ExtendedZone extends Zone {
     private String groupName;
 
     @JsonCreator
-    public ExtendedZone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("groupName") String groupName) {
-        super(name, available);
+    public ExtendedZone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("groupName") String groupName, @JsonProperty("colour") String colour) {
+        super(name, available, colour);
         this.groupName = groupName;
     }
 
