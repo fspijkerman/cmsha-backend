@@ -65,7 +65,7 @@ public class ZonesControllerTest {
     @Mock
     ActiveClaimRepository activeClaimRepository;
     private ZonesController zonesController;
-    protected static final Colour RED = new Colour(1, 0, 0);
+    private static final Colour RED = new Colour(1, 0, 0);
 
     @Before
     public void setUp() throws Exception {
@@ -80,7 +80,31 @@ public class ZonesControllerTest {
         when(zoneMappingRepository.findAll()).thenReturn(zones);
 
         List<Zone> result = zonesController.listZones(false);
-        assertThat(result.size(), equalTo(2));
+        assertThat(result.size(), equalTo(3));
+
+        Zone unavailableZone = result.stream()
+                .filter(z -> "Zone1".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a Zone1"));
+
+        assertThat(unavailableZone.getAvailable(), equalTo(false));
+        assertThat(unavailableZone.getColour(), equalTo("ff0000"));
+
+        Zone availableZone = result.stream()
+                .filter(z -> "Zone2".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a Zone2"));
+
+        assertThat(availableZone.getAvailable(), equalTo(true));
+        assertThat(availableZone.getColour(), is(nullValue()));
+
+        Zone flameThrowerZone = result.stream()
+                .filter(z -> "FlameThrowers".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a FlameThrowers"));
+
+        assertThat(flameThrowerZone.getAvailable(), equalTo(false));
+        assertThat(flameThrowerZone.getColour(), is(nullValue()));
     }
 
     @Test
@@ -90,7 +114,7 @@ public class ZonesControllerTest {
         when(zoneMappingRepository.findAll()).thenReturn(zones);
 
         List<Zone> result = zonesController.listZones(false);
-        assertThat(result.size(), equalTo(0));
+        assertThat(result.size(), equalTo(1));
     }
 
     @Test
@@ -100,8 +124,15 @@ public class ZonesControllerTest {
         when(zoneMappingRepository.findAll()).thenReturn(zones);
 
         List<Zone> result = zonesController.listZones(true);
-        assertThat(result.size(), equalTo(1));
-        assertThat(result.get(0).getName(), equalTo("Zone2"));
+        assertThat(result.size(), equalTo(2));
+
+        Zone availableZone = result.stream()
+                .filter(z -> "Zone2".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a Zone2"));
+
+        assertThat(availableZone.getAvailable(), equalTo(true));
+        assertThat(availableZone.getColour(), is(nullValue()));
     }
 
     @Test

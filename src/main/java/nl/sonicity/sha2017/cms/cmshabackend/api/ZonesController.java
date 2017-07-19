@@ -25,6 +25,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers;
+import nl.sonicity.sha2017.cms.cmshabackend.internal.ColourConverter;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
@@ -67,11 +69,19 @@ public class ZonesController {
     })
     public List<Zone> listZones(@RequestParam(name="showAvailableOnly", required = false, defaultValue = "false") boolean showAvailableOnly) {
         Spliterator<ZoneMapping> spliterator = zoneMappingRepository.findAll().spliterator();
-        return StreamSupport
+        List<Zone> regularZones = StreamSupport
                 .stream(spliterator, false)
-                .filter(m -> !showAvailableOnly || (showAvailableOnly && m.getActiveClaim() == null))
-                .map(m -> new Zone(m.getZoneName(), m.getActiveClaim() == null, null))
+                .filter(m -> !showAvailableOnly || m.getActiveClaim() == null)
+                .map(this::convertToZone)
                 .collect(Collectors.toList());
+
+        List<Zone> result = new ArrayList<>();
+        result.addAll(regularZones);
+
+        Zone flameThrower = new Zone("FlameThrowers", false, null);
+        result.add(flameThrower);
+
+        return result;
     }
 
     @RequestMapping(path="/", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -83,6 +93,9 @@ public class ZonesController {
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorDetail.class)
     })
     public Zone newZone(@RequestBody ExtendedZone extendedZone) {
+        ValidationHelpers.notEmpty().test(extendedZone.getGroupName()).orThrow();
+        ValidationHelpers.notEmpty().test(extendedZone.getName()).orThrow();
+
         if (!titanService.groupExists(extendedZone.getGroupName())) {
             throw new ResourceNotFoundException(String.format("No group with name \"%s\" is configured on the console", extendedZone.getGroupName()));
         }
@@ -130,7 +143,12 @@ public class ZonesController {
         //TODO claim a specific location  We can use the flag active is true to see which handles are active
         // probably we need to make it so that we configure how many handles are available
 
-        return new Zone(zoneMapping.getZoneName(), zoneMapping.getActiveClaim() == null, null);
+        return convertToZone(zoneMapping);
+    }
+
+    private Zone convertToZone(ZoneMapping m) {
+        String colour = m.getActiveClaim() != null ? ColourConverter.colourAsRGBHex(m.getActiveClaim().getColour()) : null;
+        return new Zone(m.getZoneName(), m.getActiveClaim() == null, colour);
     }
 
 }

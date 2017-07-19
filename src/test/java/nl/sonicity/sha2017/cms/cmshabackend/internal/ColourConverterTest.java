@@ -15,16 +15,26 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 import org.junit.Test;
+
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by htrippaers on 18/07/2017.
  */
 public class ColourConverterTest {
     @Test
-    public void testPercentageToByte() throws Exception {
-        for (float f = 0 ; f <= 1.00; f += 0.001) {
-            System.out.println(String.format("%f => %d", f, Byte.toUnsignedInt(ColourConverter.valueAsByte(f))));
-        }
+    public void testFloatPercentageToByte() throws Exception {
+        assertThat(ColourConverter.floatPercentageToInt(0.873f), equalTo(222));
+        assertThat(ColourConverter.floatPercentageToInt(0f), equalTo(0));
+        assertThat(ColourConverter.floatPercentageToInt(1.00f), equalTo(255));
+    }
+
+    @Test
+    public void testRGBHex() throws Exception {
+        Colour colour = new Colour(0.5f, 0f, 1f);
+        assertThat(ColourConverter.colourAsRGBHex(colour), equalTo("7f00ff"));
     }
 }

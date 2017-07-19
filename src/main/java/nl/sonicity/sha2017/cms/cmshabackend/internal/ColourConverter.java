@@ -16,20 +16,29 @@
 package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 
 /**
  * Created by htrippaers on 18/07/2017.
  */
 public class ColourConverter {
-//    public String colourAsHex(Colour colour) {
-//        float decimalValue = 255 * colour.getBlue();
-//
-//    }
 
-    public static byte valueAsByte(float value) {
+    public static String colourAsRGBHex(Colour colour) {
+        return String.format("%02x%02x%02x",
+                floatPercentageToInt(colour.getRed()),
+                floatPercentageToInt(colour.getGreen()),
+                floatPercentageToInt(colour.getBlue()));
+    }
+
+    /**
+     * Converts a value between 0 and 1 to the corresponding int value between 0 and 255
+     * @param value
+     * @return
+     */
+    public static int floatPercentageToInt(float value) {
         ValidationHelpers.between(0, 1).test(value).orThrow();
         float decimalValue = 255 * value;
-        return (byte)Math.abs(decimalValue);
+        return (int)Math.abs(decimalValue);
     }
 
 }

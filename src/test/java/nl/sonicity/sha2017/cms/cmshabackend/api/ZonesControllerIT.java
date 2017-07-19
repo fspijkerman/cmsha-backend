@@ -45,12 +45,14 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.stream.Stream;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.googlecode.catchexception.apis.CatchExceptionHamcrestMatchers.hasMessage;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyFloat;
@@ -101,12 +103,32 @@ public class ZonesControllerIT {
         prepareDatabase();
 
         Zone[] zones = restTemplate.getForObject("http://localhost:{port}/zones/", Zone[].class, localServerPort);
-        assertThat(zones.length, equalTo(2));
-        assertThat(zones[0].getName(), equalTo("Zone1"));
-        assertThat(zones[0].getAvailable(), equalTo(true));
+        assertThat(zones.length, equalTo(3));
 
-        assertThat(zones[1].getName(), equalTo("Zone2"));
-        assertThat(zones[1].getAvailable(), equalTo(false));
+        Zone availableZone = Stream.of(zones)
+                .filter(z -> "Zone1".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a Zone1"));
+
+        Assert.assertThat(availableZone.getAvailable(), equalTo(true));
+        Assert.assertThat(availableZone.getColour(), is(nullValue()));
+
+        Zone unavailableZone = Stream.of(zones)
+                .filter(z -> "Zone2".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a Zone2"));
+
+        Assert.assertThat(unavailableZone.getAvailable(), equalTo(false));
+        Assert.assertThat(unavailableZone.getColour(), equalTo("ff0000"));
+
+        Zone flameThrowerZone =  Stream.of(zones)
+                .filter(z -> "FlameThrowers".equals(z.getName()))
+                .findAny()
+                .orElseThrow(() -> new Exception("There should be a FlameThrowers"));
+
+        Assert.assertThat(flameThrowerZone.getAvailable(), equalTo(false));
+        Assert.assertThat(flameThrowerZone.getColour(), is(nullValue()));
+
     }
 
     @Test
@@ -118,7 +140,7 @@ public class ZonesControllerIT {
 
         HttpEntity<String> entity = new HttpEntity<String>(null,headers);
         ResponseEntity<Zone[]> zones = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.GET, entity, Zone[].class, localServerPort);
-        assertThat(zones.getBody().length, equalTo(2));
+        assertThat(zones.getBody().length, equalTo(3));
     }
 
     @Test
