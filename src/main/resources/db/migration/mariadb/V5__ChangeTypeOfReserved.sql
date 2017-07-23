@@ -1,0 +1,2 @@
+ALTER TABLE cue_location
+MODIFY COLUMN reserved BIT NOT NULL;
