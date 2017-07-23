@@ -19,11 +19,15 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.CueLocation;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,16 +88,23 @@ public class ZonesControllerIT {
     private RestTemplate restTemplate;
 
     @Autowired
+    private RestTemplate restTemplateB;
+
+    @Autowired
     private ZoneMappingRepository zoneMappingRepository;
 
     @Autowired
     private ActiveClaimRepository activeClaimRepository;
+
+    @Autowired
+    private CueLocationRepository cueLocationRepository;
 
     @MockBean
     private TitanService titanService;
 
     @Before
     public void setUp() throws Exception {
+        cueLocationRepository.deleteAll();
         zoneMappingRepository.deleteAll();
         activeClaimRepository.deleteAll();
     }
@@ -216,7 +227,8 @@ public class ZonesControllerIT {
     public void testClaimZone() throws Exception {
         prepareDatabase();
 
-        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
+        CreateRgbCueResult cueResult = new CreateRgbCueResult(new HandleLocation("Testpage", 0, 0), 1111);
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(cueResult);
         when(titanService.groupExists(any())).thenReturn(true);
 
         Claim claim = new Claim(1,1, 1);
@@ -231,10 +243,64 @@ public class ZonesControllerIT {
     }
 
     @Test
+    public void testClaimZoneConcurrency() throws Exception {
+        prepareDatabase();
+
+        ZoneMapping zoneMapping = new ZoneMapping("Zone3", "Group 1", 1111);
+        zoneMappingRepository.save(zoneMapping);
+
+        zoneMapping = new ZoneMapping("Zone4", "Group 1", 1111);
+        zoneMappingRepository.save(zoneMapping);
+
+
+        CreateRgbCueResult cueResult = new CreateRgbCueResult(new HandleLocation("Testpage", 0, 0), 1111);
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).then((c) -> {
+            Thread.sleep(5000);
+            return cueResult;
+        }).thenReturn(cueResult);
+        when(titanService.groupExists(any())).thenReturn(true);
+
+        Thread t1 = new Thread(() -> {
+
+            Claim claim = new Claim(1,1, 1);
+            restTemplate.put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone3");
+
+            assertThat(activeClaimRepository.findAll().iterator().hasNext(), equalTo(true));
+
+            ZoneMapping persistedZone = zoneMappingRepository.findOneByZoneName("Zone3")
+                    .orElseThrow(() -> new RuntimeException("Persisted zone not found"));
+
+            assertThat(persistedZone.getActiveClaim(), not(nullValue()));
+        });
+
+        Thread t2 = new Thread(() -> {
+            Claim claim = new Claim(1,1, 1);
+            restTemplateB.put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone4");
+
+            assertThat(activeClaimRepository.findAll().iterator().hasNext(), equalTo(true));
+
+            ZoneMapping persistedZone = zoneMappingRepository.findOneByZoneName("Zone4")
+                    .orElseThrow(() -> new RuntimeException("Persisted zone not found"));
+
+            assertThat(persistedZone.getActiveClaim(), not(nullValue()));
+        });
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        // If this went well both locations should have been claimed
+        assertThat(cueLocationRepository.findAllByActiveClaimIsNull().size(), equalTo(0));
+    }
+
+    @Test
     public void testClaimZoneWithInvalidValue() throws Exception {
         prepareDatabase();
 
-        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
+        CreateRgbCueResult cueResult = new CreateRgbCueResult(new HandleLocation("Testpage", 0, 0), 1111);
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(cueResult);
         when(titanService.groupExists(any())).thenReturn(true);
 
         Claim claim = new Claim(1,1, 9);
@@ -252,7 +318,8 @@ public class ZonesControllerIT {
     public void testClaimZoneAlreadyClaimed() throws Exception {
         prepareDatabase();
 
-        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1500);
+        CreateRgbCueResult cueResult = new CreateRgbCueResult(new HandleLocation("Testpage", 0, 0), 1111);
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(cueResult);
         when(titanService.groupExists(any())).thenReturn(true);
 
         // Create the zone as admin fro now
@@ -275,7 +342,7 @@ public class ZonesControllerIT {
     public void testUnhandledException() throws Exception {
         prepareDatabase();
 
-        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenThrow(new ResourceAccessException("Simulated connection error"));
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).thenThrow(new ResourceAccessException("Simulated connection error"));
 
         Claim claim = new Claim(1,1, 1);
         catchException(restTemplate).put("http://localhost:{port}/zones/{zonename}/claim", claim, localServerPort, "Zone1");
@@ -300,5 +367,10 @@ public class ZonesControllerIT {
         zoneMapping.setActiveClaim(activeClaim);
         activeClaimRepository.save(activeClaim);
         zoneMappingRepository.save(zoneMapping);
+
+        CueLocation cueLocation = new CueLocation("PlaybackWindow", 0, 0, false, null);
+        cueLocationRepository.save(cueLocation);
+        cueLocation = new CueLocation("PlaybackWindow", 0, 1, false, null);
+        cueLocationRepository.save(cueLocation);
     }
 }

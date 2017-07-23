@@ -76,4 +76,12 @@ public class ActiveClaim implements Serializable {
     public Colour getColour() {
         return colour;
     }
+
+    @Override
+    public String toString() {
+        return "ActiveClaim{" +
+                "id=" + id +
+                ", playbackTitanId=" + playbackTitanId +
+                '}';
+    }
 }

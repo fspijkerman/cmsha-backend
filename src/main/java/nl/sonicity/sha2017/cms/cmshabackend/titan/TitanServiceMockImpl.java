@@ -15,6 +15,8 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -38,10 +40,10 @@ public class TitanServiceMockImpl implements TitanService {
     }
 
     @Override
-    public int createRgbCue(String groupName, float red, float green, float blue) {
+    public CreateRgbCueResult createRgbCue(HandleLocation handleLocation, String groupName, float red, float green, float blue) {
         int titanId = atomicInteger.incrementAndGet();
-        LOG.info("TitanServiceMock: createRgbCue({}, {}, {}, {}) -> {}", groupName, red, green, blue, titanId);
-        return titanId;
+        LOG.info("TitanServiceMock: createRgbCue({}, {}, {}, {}, {}) -> {}", handleLocation, groupName, red, green, blue, titanId);
+        return new CreateRgbCueResult(handleLocation, titanId);
     }
 
     @Override

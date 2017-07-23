@@ -44,4 +44,13 @@ public class HandleLocation {
     public int getPage() {
         return page;
     }
+
+    @Override
+    public String toString() {
+        return "HandleLocation{" +
+                "group='" + group + '\'' +
+                ", index=" + index +
+                ", page=" + page +
+                '}';
+    }
 }

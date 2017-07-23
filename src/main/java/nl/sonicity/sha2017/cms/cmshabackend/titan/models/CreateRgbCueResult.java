@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.titan;
+package nl.sonicity.sha2017.cms.cmshabackend.titan.models;
 
-import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
-import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
+public class CreateRgbCueResult {
+    private HandleLocation handleLocation;
+    private int titanId;
 
-/**
- * Created by hugo on 02/07/2017.
- */
-public interface TitanService {
-    boolean groupExists(String groupName);
+    public CreateRgbCueResult(HandleLocation handleLocation, int titanId) {
+        this.handleLocation = handleLocation;
+        this.titanId = titanId;
+    }
 
-    CreateRgbCueResult createRgbCue(HandleLocation handleLocation, String groupName, float red, float green, float blue);
+    public HandleLocation getHandleLocation() {
+        return handleLocation;
+    }
 
-    void activateCue(int cueId);
-
-    void deactivateCue(int cueId);
-
-    TitanStatus getStatus();
-
-    String getTitanUrl();
+    public int getTitanId() {
+        return titanId;
+    }
 }

@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.titan;
+package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
-import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
-import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 
-/**
- * Created by hugo on 02/07/2017.
- */
-public interface TitanService {
-    boolean groupExists(String groupName);
-
-    CreateRgbCueResult createRgbCue(HandleLocation handleLocation, String groupName, float red, float green, float blue);
-
-    void activateCue(int cueId);
-
-    void deactivateCue(int cueId);
-
-    TitanStatus getStatus();
-
-    String getTitanUrl();
+public interface Core {
+    ZoneMapping processClaim(String zoneName, Claim claim);
 }

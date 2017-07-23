@@ -19,25 +19,20 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ValidationFailedException;
-import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ZoneAlreadyClaimedException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers;
 import nl.sonicity.sha2017.cms.cmshabackend.internal.ColourConverter;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.internal.Core;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Spliterator;
@@ -52,12 +47,12 @@ import java.util.stream.StreamSupport;
 @CrossOrigin(origins = "*")
 public class ZonesController {
     private ZoneMappingRepository zoneMappingRepository;
-    private ActiveClaimRepository activeClaimRepository;
     private TitanService titanService;
+    private Core core;
 
-    public ZonesController(ZoneMappingRepository zoneMappingRepository, ActiveClaimRepository activeClaimRepository, TitanService titanService) {
+    public ZonesController(ZoneMappingRepository zoneMappingRepository, TitanService titanService, Core core) {
         this.zoneMappingRepository = zoneMappingRepository;
-        this.activeClaimRepository = activeClaimRepository;
+        this.core = core;
         this.titanService = titanService;
     }
 
@@ -123,26 +118,7 @@ public class ZonesController {
         ValidationHelpers.between(0, 1).test(claim.getGreen()).orThrow();
         ValidationHelpers.between(0, 1).test(claim.getRed()).orThrow();
 
-        ZoneMapping zoneMapping = zoneMappingRepository.findOneByZoneName(zoneName)
-                .orElseThrow(() -> new ResourceNotFoundException("No mapping found for zone " + zoneName));
-
-        if (zoneMapping.getActiveClaim() != null) {
-            throw new ZoneAlreadyClaimedException("This zone is already claimed");
-        }
-
-        int playbackId = titanService.createRgbCue(zoneMapping.getTitanGroupName(), claim.getRed(), claim.getGreen(), claim.getBlue());
-        titanService.activateCue(playbackId);
-
-        Colour claimColour = new Colour(claim.getRed(), claim.getGreen(), claim.getBlue());
-        ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofMinutes(10), playbackId, claimColour);
-        activeClaimRepository.save(activeClaim);
-
-        zoneMapping.setActiveClaim(activeClaim);
-        zoneMappingRepository.save(zoneMapping);
-
-        //TODO claim a specific location  We can use the flag active is true to see which handles are active
-        // probably we need to make it so that we configure how many handles are available
-
+        ZoneMapping zoneMapping = core.processClaim(zoneName, claim);
         return convertToZone(zoneMapping);
     }
 

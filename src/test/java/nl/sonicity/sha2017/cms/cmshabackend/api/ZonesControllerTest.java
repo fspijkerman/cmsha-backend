@@ -20,12 +20,15 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ZoneAlreadyClaimedExc
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
+import nl.sonicity.sha2017.cms.cmshabackend.internal.Core;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,14 +66,15 @@ public class ZonesControllerTest {
     @Mock
     ZoneMappingRepository zoneMappingRepository;
     @Mock
+    Core core;
+    @Mock
     ActiveClaimRepository activeClaimRepository;
     private ZonesController zonesController;
     private static final Colour RED = new Colour(1, 0, 0);
 
     @Before
     public void setUp() throws Exception {
-
-        zonesController = new ZonesController(zoneMappingRepository, activeClaimRepository, titanService);
+        zonesController = new ZonesController(zoneMappingRepository, titanService, core);
     }
 
     @Test
@@ -181,21 +185,18 @@ public class ZonesControllerTest {
         ZoneMapping zone1 = new ZoneMapping("Zone1", "Group 1", null);
         zone1.setActiveClaim(null);
         when(zoneMappingRepository.findOneByZoneName("Zone1")).thenReturn(Optional.of(zone1));
-        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1111);
+        CreateRgbCueResult cueResult = new CreateRgbCueResult(new HandleLocation("Testpage", 0, 0), 1111);
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(cueResult);
+
+        ZoneMapping claimed = new ZoneMapping("Zone1", "Group 1", null);
+        claimed.setActiveClaim(new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(5), 1111, new Colour(1,1,1)));
+        when(core.processClaim(any(), any())).thenReturn(claimed);
 
         Claim claim = new Claim(1, 0.5f, 0.1f);
         Zone claimedZone = zonesController.claimZone("Zone1", claim);
 
         assertThat(claimedZone.getName(), equalTo("Zone1"));
         assertThat(claimedZone.getAvailable(), equalTo(false));
-
-        verify(titanService).createRgbCue(eq("Group 1"), eq(1.0f), eq(0.5f), eq(0.1f));
-        verify(titanService).activateCue(eq(1111));
-
-        ArgumentCaptor<ActiveClaim> captor = ArgumentCaptor.forClass(ActiveClaim.class);
-        verify(activeClaimRepository).save(captor.capture());
-        assertThat(captor.getValue().getZoneMapping(), is(nullValue())); // Will be filled on retrieval
-        assertThat(captor.getValue().getPlaybackTitanId(), equalTo(1111));
     }
 
     @Test
@@ -204,7 +205,9 @@ public class ZonesControllerTest {
         zone1.setActiveClaim(new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), null, RED));
 
         when(zoneMappingRepository.findOneByZoneName("Zone1")).thenReturn(Optional.of(zone1));
-        when(titanService.createRgbCue(any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(1111);
+        CreateRgbCueResult cueResult = new CreateRgbCueResult(new HandleLocation("Testpage", 0, 0), 1111);
+        when(titanService.createRgbCue(any(), any(), anyFloat(), anyFloat(), anyFloat())).thenReturn(cueResult);
+        when(core.processClaim(any(), any())).thenThrow(new ZoneAlreadyClaimedException("This zone is already claimed"));
 
         Claim claim = new Claim(1, 0.5f, 0.1f);
         catchException(zonesController).claimZone("Zone1", claim);

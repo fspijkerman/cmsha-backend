@@ -17,6 +17,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.ValueOutOfRangeException;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.FixtureControlId;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.Handle;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
@@ -46,7 +47,7 @@ public class TitanServiceImpl implements TitanService {
     }
 
     @Override
-    public int createRgbCue(String groupName, float red, float green, float blue) {
+    public CreateRgbCueResult createRgbCue(HandleLocation cueLocation, String groupName, float red, float green, float blue) {
         synchronized (LOCK) {
             titanDispatcher.playbacksSelectionClear();
             titanDispatcher.programmerEditorClearAll();
@@ -82,8 +83,6 @@ public class TitanServiceImpl implements TitanService {
             // Set Macro "Safe"
             // Set Mode "Dimmer"
 
-            HandleLocation cueLocation = new HandleLocation("PlaybackWindow", 0, 0);
-
             // Check contents of the target location
             Optional<Handle> currentHandle = titanDispatcher.getHandleByLocation(cueLocation);
             Handle playbackHandle = null;
@@ -111,7 +110,7 @@ public class TitanServiceImpl implements TitanService {
             titanDispatcher.setProgrammerBlindActive(false);
             titanDispatcher.programmerSetBlindMode(false, 0);
 
-            return playbackHandle.getTitanId();
+            return new CreateRgbCueResult(cueLocation, playbackHandle.getTitanId());
         }
     }
 
