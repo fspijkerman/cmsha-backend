@@ -50,7 +50,7 @@ public class HandleLocationServiceImpl implements HandleLocationService {
     @Transactional
     public Optional<HandleLocation> reserveHandleLocation(HandleLocation handleLocation) {
         LOG.debug("SELECT ... FOR UPDATE on location {}", handleLocation);
-        List<CueLocation> locations = jdbcTemplate.query("SELECT groupname, page, page_index, reserved FROM cue_location WHERE groupname=:groupname AND page=:page and page_index=:pageindex FOR UPDATE",
+        List<CueLocation> locations = jdbcTemplate.query("SELECT groupname, page, page_index, reserved FROM cue_location WHERE groupname=? AND page=? and page_index=? FOR UPDATE",
                 new Object[]{ handleLocation.getGroup(), handleLocation.getPage(), handleLocation.getIndex()},
                         (rs, rowNum) -> new CueLocation(
                                 rs.getString("groupname"),
