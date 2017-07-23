@@ -28,13 +28,17 @@ public class Zone {
     private Boolean available;
     private String colour;
     private List<Coordinate> coordinates;
+    private String claimTicket;
 
     @JsonCreator
-    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("colour") String colour, @JsonProperty("coordinates") List<Coordinate> coordinates) {
+    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available,
+                @JsonProperty("colour") String colour, @JsonProperty("coordinates") List<Coordinate> coordinates,
+                @JsonProperty("claim_ticket") String claimTicket) {
         this.name = name;
         this.available = available;
         this.colour = colour;
         this.coordinates = coordinates;
+        this.claimTicket = claimTicket;
     }
 
     public String getName() {
@@ -51,5 +55,9 @@ public class Zone {
 
     public List<Coordinate> getCoordinates() {
         return coordinates;
+    }
+
+    public String getClaimTicket() {
+        return claimTicket;
     }
 }

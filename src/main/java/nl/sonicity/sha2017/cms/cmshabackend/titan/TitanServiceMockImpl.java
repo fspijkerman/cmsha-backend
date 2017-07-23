@@ -15,6 +15,7 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.titan;
 
+import nl.sonicity.sha2017.cms.cmshabackend.titan.exceptions.PropertyNotFoundException;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.slf4j.Logger;
@@ -65,4 +66,23 @@ public class TitanServiceMockImpl implements TitanService {
     public String getTitanUrl() {
         return "local://mock";
     }
+
+    @Override
+    public boolean isHandleActive(HandleLocation handleLocation) {
+        return true;
+    }
+
+    @Override
+    public HandleLocation getHandleLocationFromProperties(String handleName) {
+        switch (handleName) {
+            case "flamesafety":
+                return new HandleLocation("PlaybackWindow", 0,0 );
+            case "emergency":
+                return new HandleLocation("PlaybackWindow", 1, 0);
+            default:
+                throw new PropertyNotFoundException("Mock not configured");
+        }
+    }
+
+
 }

@@ -33,4 +33,8 @@ public interface TitanService {
     TitanStatus getStatus();
 
     String getTitanUrl();
+
+    boolean isHandleActive(HandleLocation handleLocation);
+
+    HandleLocation getHandleLocationFromProperties(String handleName);
 }

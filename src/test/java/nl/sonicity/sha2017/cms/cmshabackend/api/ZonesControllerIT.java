@@ -38,6 +38,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
@@ -69,6 +70,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:integrationtest.properties")
+@ActiveProfiles({"mock-titan", "test"})
 public class ZonesControllerIT {
     public static final String MYADMINTESTTOKEN =
             "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDb2xvck15U0hBMjAxNyIsInN1YiI6Imh1Z29AdHJpcHBhZXJzLm5sIiwi" +
@@ -174,7 +176,7 @@ public class ZonesControllerIT {
 
     @Test
     public void testAddZoneAnonymous() throws Exception {
-        Zone zone = new Zone("TestZone", true, null, Collections.emptyList());
+        Zone zone = new Zone("TestZone", true, null, Collections.emptyList(), null);
         catchException(restTemplate).postForObject("http://localhost:{port}/zones/", zone, Zone.class, localServerPort);
 
         Assert.assertThat(caughtException(),
@@ -192,7 +194,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
 
-        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1", null, null);
+        ExtendedZone zone = new ExtendedZone("TestZone1", "Dim 1", Collections.emptyList());
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -214,7 +216,7 @@ public class ZonesControllerIT {
         coordinates.add(new Coordinate(52.033172d, 5.154831d));
         coordinates.add(new Coordinate(52.033117d, 5.154590d));
 
-        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1", null, coordinates);
+        ExtendedZone zone = new ExtendedZone("TestZone1", "Dim 1", coordinates);
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -235,7 +237,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
 
-        ExtendedZone zone = new ExtendedZone("Zone1", true, "Dim 1", null, Collections.emptyList());
+        ExtendedZone zone = new ExtendedZone("Zone1", "Dim 1", Collections.emptyList());
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         catchException(restTemplate).exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 

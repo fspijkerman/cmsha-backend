@@ -27,10 +27,9 @@ public class ExtendedZone extends Zone {
     private String groupName;
 
     @JsonCreator
-    public ExtendedZone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available,
-                        @JsonProperty("groupName") String groupName, @JsonProperty("colour") String colour,
+    public ExtendedZone(@JsonProperty("name") String name, @JsonProperty("groupName") String groupName,
                         @JsonProperty("coordinates") List<Coordinate> coordinates) {
-        super(name, available, colour, coordinates);
+        super(name, false, null, coordinates, null);
         this.groupName = groupName;
     }
 

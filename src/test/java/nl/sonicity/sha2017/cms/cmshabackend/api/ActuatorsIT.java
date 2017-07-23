@@ -39,7 +39,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:integrationtest.properties")
-@ActiveProfiles("mock-titan")
+@ActiveProfiles({"mock-titan", "test"})
 public class ActuatorsIT {
     public static final String MYADMINTESTTOKEN =
             "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDb2xvck15U0hBMjAxNyIsInN1YiI6Imh1Z29AdHJpcHBhZXJzLm5sIiwi" +

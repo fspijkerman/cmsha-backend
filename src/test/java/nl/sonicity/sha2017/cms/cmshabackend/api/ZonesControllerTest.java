@@ -146,10 +146,15 @@ public class ZonesControllerTest {
 
     @Test
     public void testNewZone() throws Exception {
-        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1", null, null);
+        ExtendedZone extendedZone = new ExtendedZone("Zone1", "Group 1",  Collections.emptyList());
+
+        ZoneMapping zoneMapping = new ZoneMapping("Zone1", "Group 1", 1111);
+        zoneMapping.setCoordinatesList(Collections.emptyList());
+        zoneMapping.setActiveClaim(null);
 
         when(titanService.groupExists(any())).thenReturn(true);
         when(zoneMappingRepository.findOneByZoneName(any())).thenReturn(Optional.empty());
+        when(zoneMappingRepository.save((ZoneMapping)any())).thenReturn(zoneMapping);
 
         Zone createdZone = zonesController.newZone(extendedZone);
 
@@ -169,7 +174,7 @@ public class ZonesControllerTest {
 
     @Test
     public void testDuplicateZone() throws Exception {
-        ExtendedZone extendedZone = new ExtendedZone("Zone1", true, "Group 1", null, null);
+        ExtendedZone extendedZone = new ExtendedZone("Zone1", "Group 1",  Collections.emptyList());
 
         when(titanService.groupExists(any())).thenReturn(true);
         when(zoneMappingRepository.findOneByZoneName(any())).thenReturn(Optional.of(new ZoneMapping("Zone1", "Group 1", 1111)));

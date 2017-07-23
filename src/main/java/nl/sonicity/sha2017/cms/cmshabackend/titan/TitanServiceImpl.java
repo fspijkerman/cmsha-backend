@@ -34,9 +34,11 @@ import java.util.Optional;
 public class TitanServiceImpl implements TitanService {
     private final static Object LOCK = new Object();
     private TitanDispatcher titanDispatcher;
+    private TitanProperties titanProperties;
 
-    public TitanServiceImpl(TitanDispatcher titanDispatcher) {
+    public TitanServiceImpl(TitanDispatcher titanDispatcher, TitanProperties titanProperties) {
         this.titanDispatcher = titanDispatcher;
+        this.titanProperties = titanProperties;
     }
 
     @Override
@@ -140,5 +142,18 @@ public class TitanServiceImpl implements TitanService {
         synchronized (LOCK) {
             titanDispatcher.playbacksPlayback(cueId, 0, 1);
         }
+    }
+
+    @Override
+    public boolean isHandleActive(HandleLocation handleLocation) {
+        synchronized (LOCK) {
+            Optional<Handle> handle = titanDispatcher.getHandleByLocation(handleLocation);
+            return handle.isPresent() && handle.get().isActive();
+        }
+    }
+
+    @Override
+    public HandleLocation getHandleLocationFromProperties(String handleName) {
+        return titanProperties.getHandleLocation(handleName);
     }
 }

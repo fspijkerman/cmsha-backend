@@ -15,8 +15,10 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend;
 
+import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -34,6 +36,7 @@ import java.util.List;
 @SpringBootApplication
 @EnableSwagger2
 @EnableScheduling
+@EnableConfigurationProperties(TitanProperties.class)
 public class CmshaBackendApplication {
 
 	public static void main(String[] args) {

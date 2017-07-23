@@ -25,6 +25,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -41,6 +43,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:integrationtest.properties")
+@ActiveProfiles({"mock-titan", "test"})
 public class ScheduledTasksIT {
     @Autowired
     private ZoneMappingRepository zoneMappingRepository;
@@ -51,11 +54,14 @@ public class ScheduledTasksIT {
     @Autowired
     private CueLocationRepository cueLocationRepository;
 
+    @MockBean
+    private FireLotteryService fireLotteryService;
+
     private ScheduledTasks scheduledTasks;
 
     @Before
     public void setUp() throws Exception {
-        scheduledTasks = new ScheduledTasks(zoneMappingRepository, cueLocationRepository, activeClaimRepository, new TitanServiceMockImpl());
+        scheduledTasks = new ScheduledTasks(zoneMappingRepository, cueLocationRepository, activeClaimRepository, new TitanServiceMockImpl(), fireLotteryService);
     }
 
     @Test

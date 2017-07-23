@@ -72,7 +72,7 @@ public class ZonesController {
         List<Zone> result = new ArrayList<>();
         result.addAll(regularZones);
 
-        Zone flameThrower = new Zone("FlameThrowers", false, null, Collections.emptyList());
+        Zone flameThrower = new Zone("FlameThrowers", false, null, Collections.emptyList(), null);
         result.add(flameThrower);
 
         return result;
@@ -108,8 +108,9 @@ public class ZonesController {
 
         ZoneMapping zoneMapping = new ZoneMapping(extendedZone.getName(), extendedZone.getGroupName(), null);
         zoneMapping.setCoordinatesList(coordinates);
-        zoneMappingRepository.save(zoneMapping);
-        return extendedZone;
+
+        ZoneMapping createdZone = zoneMappingRepository.save(zoneMapping);
+        return convertToZone(createdZone);
     }
 
     @RequestMapping(path="/{zoneName}/claim", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -133,7 +134,7 @@ public class ZonesController {
     private Zone convertToZone(ZoneMapping m) {
         String colour = m.getActiveClaim() != null ? ColourConverter.colourAsRGBHex(m.getActiveClaim().getColour()) : null;
         List<Coordinate> coordinates = m.getCoordinatesList().stream().map(this::convertToCoordinate).collect(Collectors.toList());
-        return new Zone(m.getZoneName(), m.getActiveClaim() == null, colour, coordinates);
+        return new Zone(m.getZoneName(), m.getActiveClaim() == null, colour, coordinates, null);
     }
 
     private Coordinate convertToCoordinate(ZoneCoordinates z) {

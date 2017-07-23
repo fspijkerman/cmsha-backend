@@ -21,9 +21,10 @@ import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.CueLocation;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
+import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ import java.util.Optional;
  * Created by hugo on 05/07/2017.
  */
 @Component
-@ConditionalOnProperty(value = "scheduling.enabled", havingValue = "true")
+@Profile("!test")
 public class ScheduledTasks {
     private static final Logger LOG = LoggerFactory.getLogger(ScheduledTasks.class);
 
@@ -42,12 +43,24 @@ public class ScheduledTasks {
     private CueLocationRepository cueLocationRepository;
     private ActiveClaimRepository activeClaimRepository;
     private TitanService titanService;
+    private FireLotteryService fireLotteryService;
 
-    public ScheduledTasks(ZoneMappingRepository zoneMappingRepository, CueLocationRepository cueLocationRepository, ActiveClaimRepository activeClaimRepository, TitanService titanService) {
+    private HandleLocation flameSafetyHandleLocation;
+    private HandleLocation emergencyHandleLocation;
+
+    public ScheduledTasks(ZoneMappingRepository zoneMappingRepository, CueLocationRepository cueLocationRepository, ActiveClaimRepository activeClaimRepository,
+                          TitanService titanService, FireLotteryService fireLotteryService) {
         this.zoneMappingRepository = zoneMappingRepository;
         this.cueLocationRepository = cueLocationRepository;
         this.activeClaimRepository = activeClaimRepository;
         this.titanService = titanService;
+
+        flameSafetyHandleLocation = titanService.getHandleLocationFromProperties("flamesafety");
+        emergencyHandleLocation = titanService.getHandleLocationFromProperties("emergency");
+        this.fireLotteryService = fireLotteryService;
+
+        LOG.info("Configured flame safety cue to {}", flameSafetyHandleLocation);
+        LOG.info("Configured emergency cue to {}", emergencyHandleLocation);
     }
 
     @Scheduled(fixedRate = 5000)
@@ -74,5 +87,10 @@ public class ScheduledTasks {
                 activeClaimRepository.delete(activeClaim.getId());
             }
         });
+    }
+
+    @Scheduled(fixedRate = 5000)
+    public void updateActivationStatus() {
+        fireLotteryService.setFireSystemAvailable(titanService.isHandleActive(flameSafetyHandleLocation));
     }
 }
