@@ -40,7 +40,7 @@ public class CueLocation implements Serializable {
     @Column(nullable = false)
     private Boolean reserved;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.DETACH)
     private ActiveClaim activeClaim;
 
     protected CueLocation() {

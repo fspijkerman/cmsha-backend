@@ -15,12 +15,14 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.persistence;
 
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.CueLocation;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Created by htrippaers on 21/07/2017.
@@ -32,4 +34,6 @@ public interface CueLocationRepository extends CrudRepository<CueLocation, CueLo
 
     @Query("SELECT cl FROM CueLocation cl where cl.group=:group AND cl.page=:page AND cl.pageIndex=:pageIndex")
     CueLocation findOneForUpdate(@Param("group") String group, @Param("page") int page, @Param("pageIndex") int pageIndex);
+
+    Optional<CueLocation> findOneByActiveClaim(ActiveClaim activeClaim);
 }
