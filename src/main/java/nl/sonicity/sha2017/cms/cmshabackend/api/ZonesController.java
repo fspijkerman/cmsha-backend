@@ -19,14 +19,12 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ValidationFailedException;
-import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
-import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
-import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
-import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.*;
 import nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers;
 import nl.sonicity.sha2017.cms.cmshabackend.internal.ColourConverter;
 import nl.sonicity.sha2017.cms.cmshabackend.internal.Core;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneCoordinates;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import org.springframework.http.MediaType;
@@ -34,6 +32,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
@@ -73,7 +72,7 @@ public class ZonesController {
         List<Zone> result = new ArrayList<>();
         result.addAll(regularZones);
 
-        Zone flameThrower = new Zone("FlameThrowers", false, null);
+        Zone flameThrower = new Zone("FlameThrowers", false, null, Collections.emptyList());
         result.add(flameThrower);
 
         return result;
@@ -99,7 +98,16 @@ public class ZonesController {
             throw new ValidationFailedException("Zone with name \"" + extendedZone.getName() + "\" already exists.");
         }
 
+        List<ZoneCoordinates> coordinates = new ArrayList<>();
+        if (extendedZone.getCoordinates() != null) {
+            extendedZone.getCoordinates()
+                    .stream()
+                    .map(this::convertToZoneCoordinate)
+                    .forEach(coordinates::add);
+        }
+
         ZoneMapping zoneMapping = new ZoneMapping(extendedZone.getName(), extendedZone.getGroupName(), null);
+        zoneMapping.setCoordinatesList(coordinates);
         zoneMappingRepository.save(zoneMapping);
         return extendedZone;
     }
@@ -124,7 +132,16 @@ public class ZonesController {
 
     private Zone convertToZone(ZoneMapping m) {
         String colour = m.getActiveClaim() != null ? ColourConverter.colourAsRGBHex(m.getActiveClaim().getColour()) : null;
-        return new Zone(m.getZoneName(), m.getActiveClaim() == null, colour);
+        List<Coordinate> coordinates = m.getCoordinatesList().stream().map(this::convertToCoordinate).collect(Collectors.toList());
+        return new Zone(m.getZoneName(), m.getActiveClaim() == null, colour, coordinates);
+    }
+
+    private Coordinate convertToCoordinate(ZoneCoordinates z) {
+        return new Coordinate(z.getLongitude(), z.getLatitude());
+    }
+
+    private ZoneCoordinates convertToZoneCoordinate(Coordinate z) {
+        return new ZoneCoordinates(z.getLongitude(), z.getLatitude());
     }
 
 }

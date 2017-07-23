@@ -18,23 +18,24 @@ package nl.sonicity.sha2017.cms.cmshabackend.api.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
-
 /**
- * Created by hugo on 02/07/2017.
+ * Created by hugo on 23/07/2017.
  */
-public class ExtendedZone extends Zone {
-    private String groupName;
+public class Coordinate {
+    private double longitude;
+    private double latitude;
 
     @JsonCreator
-    public ExtendedZone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available,
-                        @JsonProperty("groupName") String groupName, @JsonProperty("colour") String colour,
-                        @JsonProperty("coordinates") List<Coordinate> coordinates) {
-        super(name, available, colour, coordinates);
-        this.groupName = groupName;
+    public Coordinate(@JsonProperty("longitude") double longitude, @JsonProperty("latitude") double latitude) {
+        this.longitude = longitude;
+        this.latitude = latitude;
     }
 
-    public String getGroupName() {
-        return groupName;
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
     }
 }

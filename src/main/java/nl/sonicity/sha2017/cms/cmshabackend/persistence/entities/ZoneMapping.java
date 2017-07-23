@@ -17,6 +17,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.persistence.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by hugo on 02/07/2017.
@@ -40,6 +41,10 @@ public class ZoneMapping implements Serializable {
 
     @OneToOne(cascade = CascadeType.REMOVE)
     private ActiveClaim activeClaim;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "zoneRef", referencedColumnName = "id")
+    private List<ZoneCoordinates> coordinatesList;
 
     protected ZoneMapping() {}
 
@@ -71,5 +76,13 @@ public class ZoneMapping implements Serializable {
 
     public void setActiveClaim(ActiveClaim activeClaim) {
         this.activeClaim = activeClaim;
+    }
+
+    public List<ZoneCoordinates> getCoordinatesList() {
+        return coordinatesList;
+    }
+
+    public void setCoordinatesList(List<ZoneCoordinates> coordinatesList) {
+        this.coordinatesList = coordinatesList;
     }
 }

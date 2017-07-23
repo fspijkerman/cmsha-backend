@@ -18,6 +18,8 @@ package nl.sonicity.sha2017.cms.cmshabackend.api.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
  * Created by hugo on 02/07/2017.
  */
@@ -25,12 +27,14 @@ public class Zone {
     private String name;
     private Boolean available;
     private String colour;
+    private List<Coordinate> coordinates;
 
     @JsonCreator
-    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("colour") String colour) {
+    public Zone(@JsonProperty("name") String name, @JsonProperty("available") Boolean available, @JsonProperty("colour") String colour, @JsonProperty("coordinates") List<Coordinate> coordinates) {
         this.name = name;
         this.available = available;
         this.colour = colour;
+        this.coordinates = coordinates;
     }
 
     public String getName() {
@@ -43,5 +47,9 @@ public class Zone {
 
     public String getColour() {
         return colour;
+    }
+
+    public List<Coordinate> getCoordinates() {
+        return coordinates;
     }
 }

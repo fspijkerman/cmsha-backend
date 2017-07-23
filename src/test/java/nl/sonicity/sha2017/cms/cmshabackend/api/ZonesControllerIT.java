@@ -16,15 +16,13 @@
 package nl.sonicity.sha2017.cms.cmshabackend.api;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.Coordinate;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.CueLocation;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.*;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
@@ -49,6 +47,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static com.googlecode.catchexception.CatchException.catchException;
@@ -173,7 +174,7 @@ public class ZonesControllerIT {
 
     @Test
     public void testAddZoneAnonymous() throws Exception {
-        Zone zone = new Zone("TestZone", true, null);
+        Zone zone = new Zone("TestZone", true, null, Collections.emptyList());
         catchException(restTemplate).postForObject("http://localhost:{port}/zones/", zone, Zone.class, localServerPort);
 
         Assert.assertThat(caughtException(),
@@ -191,7 +192,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
 
-        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1", null);
+        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1", null, null);
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -199,6 +200,30 @@ public class ZonesControllerIT {
         assertThat(createdZoneEntity.getBody().getAvailable(), equalTo(true));
 
         assertThat(zoneMappingRepository.findOneByZoneName("TestZone1").isPresent(), equalTo(true));
+    }
+
+    @Test
+    public void testAddZoneWithApiKeyAndCoordinates() throws Exception {
+        when(titanService.groupExists(any())).thenReturn(true);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
+
+        List<Coordinate> coordinates = new ArrayList<>();
+        coordinates.add(new Coordinate(52.033199d, 5.155046d));
+        coordinates.add(new Coordinate(52.033172d, 5.154831d));
+        coordinates.add(new Coordinate(52.033117d, 5.154590d));
+
+        ExtendedZone zone = new ExtendedZone("TestZone1", true, "Dim 1", null, coordinates);
+        HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
+        ResponseEntity<Zone> createdZoneEntity = restTemplate.exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
+
+        assertThat(createdZoneEntity.getBody().getName(), equalTo(zone.getName()));
+        assertThat(createdZoneEntity.getBody().getAvailable(), equalTo(true));
+
+        assertThat(zoneMappingRepository.findOneByZoneName("TestZone1").isPresent(), equalTo(true));
+        ZoneMapping zoneMapping = zoneMappingRepository.findOneByZoneName("TestZone1").get();
+        assertThat(zoneMapping.getCoordinatesList().size(), equalTo(3));
     }
 
     @Test
@@ -210,7 +235,7 @@ public class ZonesControllerIT {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AuthenticationFilter.APIKEY_HEADER, MYADMINTESTTOKEN);
 
-        ExtendedZone zone = new ExtendedZone("Zone1", true, "Dim 1", null);
+        ExtendedZone zone = new ExtendedZone("Zone1", true, "Dim 1", null, Collections.emptyList());
         HttpEntity<Zone> zoneHttpEntity = new HttpEntity<>(zone, headers);
         catchException(restTemplate).exchange("http://localhost:{port}/zones/", HttpMethod.POST, zoneHttpEntity, Zone.class, localServerPort);
 
@@ -360,6 +385,11 @@ public class ZonesControllerIT {
 
     private void prepareDatabase() {
         ZoneMapping zoneMapping = new ZoneMapping("Zone1", "Group 1", 1111);
+        List<ZoneCoordinates> zoneCoordinates = new ArrayList<>();
+        zoneCoordinates.add(new ZoneCoordinates(52.033199d, 5.155046d));
+        zoneCoordinates.add(new ZoneCoordinates(52.033172d, 5.154831d));
+        zoneCoordinates.add(new ZoneCoordinates(52.033117d, 5.154590d));
+        zoneMapping.setCoordinatesList(zoneCoordinates);
         zoneMappingRepository.save(zoneMapping);
 
         ActiveClaim activeClaim = new ActiveClaim(LocalDateTime.now(), Duration.ofSeconds(60), 1113, new Colour(1,0,0));
