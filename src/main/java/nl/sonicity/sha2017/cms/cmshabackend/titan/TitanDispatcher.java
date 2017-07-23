@@ -41,6 +41,12 @@ import java.util.Optional;
 @Component
 public class TitanDispatcher {
 
+    public static final String FLOAT_PATTERN = "#.###";
+    public static final String PARAM_HANDLE_TITAN_ID = "handle_titanId";
+    public static final String PARAM_GROUP = "group";
+    public static final String PARAM_INDEX = "index";
+    public static final String PARAM_UPDATE_ONLY = "updateOnly";
+    public static final String PARAM_PAGE = "page";
     private String baseUrl;
 
     @Autowired
@@ -108,9 +114,9 @@ public class TitanDispatcher {
     public Optional<Handle> getHandleByLocation(HandleLocation handleLocation) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Handles/GetHandle")
-                .queryParam("group", handleLocation.getGroup())
-                .queryParam("index", handleLocation.getIndex())
-                .queryParam("page", handleLocation.getPage());
+                .queryParam(PARAM_GROUP, handleLocation.getGroup())
+                .queryParam(PARAM_INDEX, handleLocation.getIndex())
+                .queryParam(PARAM_PAGE, handleLocation.getPage());
 
         return Optional.ofNullable(restTemplate
                 .getForObject(builder.build().encode().toString(), Handle.class));
@@ -130,7 +136,7 @@ public class TitanDispatcher {
         if (value < 0 || value > 1) {
             throw new ValueOutOfRangeException("Invalid value for value");
         }
-        DecimalFormat formatter = new DecimalFormat("#.###");
+        DecimalFormat formatter = new DecimalFormat(FLOAT_PATTERN);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Programmer/Editor/Fixtures/SetControlValueById")
@@ -148,7 +154,7 @@ public class TitanDispatcher {
         if (level < 0 || level > 1) {
             throw new ValueOutOfRangeException("Invalid value for level");
         }
-        DecimalFormat formatter = new DecimalFormat("#.###");
+        DecimalFormat formatter = new DecimalFormat(FLOAT_PATTERN);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/Playbacks/FirePlaybackAtLevel")
@@ -162,7 +168,7 @@ public class TitanDispatcher {
     public void selectionContextSelectFixture(int titanId) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Selection/Context/Global/SelectFixture")
-                .queryParam("handle_titanId", titanId);
+                .queryParam(PARAM_HANDLE_TITAN_ID, titanId);
 
         executeTitanScriptCall(builder.build().encode().toString());
     }
@@ -178,7 +184,7 @@ public class TitanDispatcher {
     public void groupRecallGroup(int titanId) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Group/RecallGroup")
-                .queryParam("handle_titanId", titanId);
+                .queryParam(PARAM_HANDLE_TITAN_ID, titanId);
 
         executeTitanScriptCall(builder.build().encode().toString());
     }
@@ -195,21 +201,21 @@ public class TitanDispatcher {
     public void playbacksStoreCue(String group, int index, boolean updateOnly) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Playbacks/StoreCue")
-                .queryParam("group", group)
-                .queryParam("index", index)
-                .queryParam("updateOnly", Boolean.toString(false));
+                .queryParam(PARAM_GROUP, group)
+                .queryParam(PARAM_INDEX, index)
+                .queryParam(PARAM_UPDATE_ONLY, Boolean.toString(false));
 
         String requestUrl = builder.build().encode().toString();
         executeTitanScriptCall(requestUrl);
     }
 
     public void playbacksPlayCue(String group, int index, float level, float accuracy) {
-        DecimalFormat formatter = new DecimalFormat("#.###");
+        DecimalFormat formatter = new DecimalFormat(FLOAT_PATTERN);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Playbacks/PlayCue")
-                .queryParam("group", group)
-                .queryParam("index", index)
+                .queryParam(PARAM_GROUP, group)
+                .queryParam(PARAM_INDEX, index)
                 .queryParam("level", formatter.format(level))
                 .queryParam("accuracy", formatter.format(accuracy));
 
@@ -218,11 +224,11 @@ public class TitanDispatcher {
     }
 
     public void playbacksPlayback(int titanId, float level, float accuracy) {
-        DecimalFormat formatter = new DecimalFormat("#.###");
+        DecimalFormat formatter = new DecimalFormat(FLOAT_PATTERN);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Playbacks/PlayPlayback")
-                .queryParam("handle_titanId", titanId)
+                .queryParam(PARAM_HANDLE_TITAN_ID, titanId)
                 .queryParam("level", formatter.format(level))
                 .queryParam("accuracy", formatter.format(accuracy));
 
@@ -231,11 +237,9 @@ public class TitanDispatcher {
     }
 
     public void playbacksReplacePlaybackCue(int titanId, boolean updateOnly) {
-        DecimalFormat formatter = new DecimalFormat("#.###");
-
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Playbacks/ReplacePlaybackCue")
-                .queryParam("handle_titanId", titanId)
+                .queryParam(PARAM_HANDLE_TITAN_ID, titanId)
                 .queryParam("updateOnly", Boolean.toString(updateOnly));
 
         String requestUrl = builder.build().encode().toString();
@@ -243,7 +247,7 @@ public class TitanDispatcher {
     }
 
     public void programmerSetBlindMode(boolean setChangesLive, float fadeTime) {
-        DecimalFormat formatter = new DecimalFormat("#.###");
+        DecimalFormat formatter = new DecimalFormat(FLOAT_PATTERN);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Programmer/SetBlindMode")
@@ -267,7 +271,7 @@ public class TitanDispatcher {
     public void playbacksSelectEditHandle(int titanId) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Playbacks/Select/EditHandle")
-                .queryParam("handle_titanId", titanId);
+                .queryParam(PARAM_HANDLE_TITAN_ID, titanId);
 
         String requestUrl = builder.build().encode().toString();
         executeTitanScriptCall(requestUrl);

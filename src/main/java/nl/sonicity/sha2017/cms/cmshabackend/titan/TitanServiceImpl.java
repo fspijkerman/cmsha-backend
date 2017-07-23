@@ -66,16 +66,16 @@ public class TitanServiceImpl implements TitanService {
 
             try {
                 // Set Dimmer 100%
-                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.DIMMER, 1, 1, true, false);
 
                 // Set Red 100%
-                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, red, true, false);
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.RED, 1, red, true, false);
 
                 // Set Green 8%
-                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, green, true, false);
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.GREEN, 1, green, true, false);
 
                 // Set Blue 0%
-                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, blue, true, false);
+                titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.BLUE, 1, blue, true, false);
             } catch (ValueOutOfRangeException e) {
                 throw new IllegalStateException("Invalid arguments for internal function", e);
             }

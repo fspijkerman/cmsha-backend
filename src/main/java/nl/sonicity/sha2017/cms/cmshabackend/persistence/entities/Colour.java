@@ -16,11 +16,12 @@
 package nl.sonicity.sha2017.cms.cmshabackend.persistence.entities;
 
 import javax.persistence.Column;
+import java.io.Serializable;
 
 /**
  * Created by htrippaers on 17/07/2017.
  */
-public class Colour {
+public class Colour implements Serializable {
     @Column(nullable = false)
     private float red;
 

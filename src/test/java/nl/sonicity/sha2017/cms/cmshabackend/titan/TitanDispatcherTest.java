@@ -178,7 +178,7 @@ public class TitanDispatcherTest {
                         .updateHeader("Content-Length","0")
                         .withBody(""));
 
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 0.5f, true, true);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.DIMMER, 1, 0.5f, true, true);
 
         clientAndServer.verify(HttpRequest
                 .request("/titan/script/2/Programmer/Editor/Fixtures/SetControlValueById")

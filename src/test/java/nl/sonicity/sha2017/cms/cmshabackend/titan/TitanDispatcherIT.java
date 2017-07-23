@@ -126,16 +126,16 @@ public class TitanDispatcherIT {
         assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(true));
 
         // Set Dimmer 100%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.DIMMER, 1, 1, true, false);
 
         // Set Red 100%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, 0f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.RED, 1, 0f, true, false);
 
         // Set Green 8%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, 1f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.GREEN, 1, 1f, true, false);
 
         // Set Blue 0%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, 0f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.BLUE, 1, 0f, true, false);
 
         // Set Macro "Safe"
         // Set Mode "Dimmer"
@@ -195,16 +195,16 @@ public class TitanDispatcherIT {
         assertThat(titanDispatcher.programmerIsBlindActive(), equalTo(true));
 
         // Set Dimmer 100%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Dimmer, 1, 1, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.DIMMER, 1, 1, true, false);
 
         // Set Red 100%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Red, 1, 0f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.RED, 1, 0f, true, false);
 
         // Set Green 8%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Green, 1, 1f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.GREEN, 1, 1f, true, false);
 
         // Set Blue 0%
-        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.Blue, 1, 0f, true, false);
+        titanDispatcher.programmerEditorFixturesSetControlValue(FixtureControlId.BLUE, 1, 0f, true, false);
 
         // Set Macro "Safe"
         // Set Mode "Dimmer"
