@@ -69,7 +69,7 @@ public class HandleLocationServiceImpl implements HandleLocationService {
         LOG.debug("Successfully row locked location {}", location);
 
         if (!location.getReserved()) {
-            jdbcTemplate.update("UPDATE cue_location SET reserved = 1 WHERE groupname=:groupname AND page=:page and page_index=:pageindex",
+            jdbcTemplate.update("UPDATE cue_location SET reserved = 1 WHERE groupname=? AND page=? and page_index=?",
                     handleLocation.getGroup(), handleLocation.getPage(), handleLocation.getIndex());
             LOG.debug("Successfully set reserved flag for location {}", location);
             return Optional.of(handleLocation);
