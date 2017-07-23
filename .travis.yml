@@ -7,7 +7,8 @@ notifications:
     secure: WA2Z6i7vFRS6+Ogj6CgrXeqeCBXOQ7aMG+fJD/7XCcUvr9ZBfSEdz+GLEdqnb8KFHNfzHkzgpYLqfyxrvUi/YGC5HUGN3W5LBGMRQ2Y7aEdzDwOonnnuGmMIZCnoDHr+tOzDAuOf8bAummQL/Cg155QsbMXYdectKmAzrGVspVCdIQKZKbqasNI3KBzE2PpHK9mMqV/7jAK6Q9FX1B5nFHc3ahPLjweQIPYz5Hai9iJJDCqhF9I3k1r60Gymn7TNHPHSuHEqqQ/S9RR1cV2N9O9A3fPBqwyqn1CkWrBGH3gJ4I+tYov5dI30ceuA0g3ERVejCOBFiWOsjAUs2Hys9JsAPNVQ74Xo7SMKFleWgPAK646VMv2WmSCFQKCihNP63CwOxYnD/1tvSpKXiKgJjnSnYp2VrT1eTJcGTpRyB4EqNGGLHP1Ra//7A76FUJkaSZwdSWaouJ6bNHRR0naZuXoFJXKhTl0ADJuTKaq76TKswGasMYpyR7PZZRAd2HQWGv6wixjAtJDTNFMrwCtoGLfqQVmpaE1OTM9ibY8ghiQiYD27bsJOh5WnMwT7/KuOG9ik8k2zDHS7ln0HS4OVXJ2sdacP9/Lh+nNduiPLW+LbeAzo26QJG8AmXpAjw9wR5qXfm+DbfFle+ZoJHsUjE2lXx/fAKokt4pGapdt3Uus=
 after_success:
 - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-- mvn -P docker -DskipTests -DpushImage package
+- mvn -P docker -DskipTests package
+- docker push hugot/cmsha-backend:latest
 services:
 - docker
 env:
