@@ -18,6 +18,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.internal;
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ZoneAlreadyClaimedException;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -45,13 +48,15 @@ public class CoreImpl implements Core {
     private ZoneMappingRepository zoneMappingRepository;
     private CueLocationRepository cueLocationRepository;
     private HandleLocationService handleLocationService;
+    private FireLotteryService fireLotteryService;
 
-    public CoreImpl(TitanService titanService, ActiveClaimRepository activeClaimRepository, ZoneMappingRepository zoneMappingRepository, CueLocationRepository cueLocationRepository, HandleLocationService handleLocationService) {
+    public CoreImpl(TitanService titanService, ActiveClaimRepository activeClaimRepository, ZoneMappingRepository zoneMappingRepository, CueLocationRepository cueLocationRepository, HandleLocationService handleLocationService, FireLotteryService fireLotteryService) {
         this.titanService = titanService;
         this.activeClaimRepository = activeClaimRepository;
         this.zoneMappingRepository = zoneMappingRepository;
         this.cueLocationRepository = cueLocationRepository;
         this.handleLocationService = handleLocationService;
+        this.fireLotteryService = fireLotteryService;
     }
 
     @Override
@@ -98,5 +103,14 @@ public class CoreImpl implements Core {
         LOG.debug("Updated location {} with titanId {}", claimedLocation, activeClaim.getPlaybackTitanId());
 
         return zoneMappingRepository.findOne(zoneMapping.getId());
+    }
+
+    @Override
+    public List<Zone> getSpecialZones() {
+        boolean available = fireLotteryService.getFireSystemAvailable();
+        String claimTicket = fireLotteryService.enterDraw().orElse(null);
+
+        Zone flameThrower = new Zone("FlameThrowers", available, null, Collections.emptyList(), claimTicket);
+        return Collections.singletonList(flameThrower);
     }
 }

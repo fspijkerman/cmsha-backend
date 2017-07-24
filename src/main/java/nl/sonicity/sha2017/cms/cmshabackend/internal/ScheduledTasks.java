@@ -17,6 +17,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.SpecialZoneClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.CueLocation;
@@ -42,6 +43,7 @@ public class ScheduledTasks {
     private ZoneMappingRepository zoneMappingRepository;
     private CueLocationRepository cueLocationRepository;
     private ActiveClaimRepository activeClaimRepository;
+    private SpecialZoneClaimRepository specialZoneClaimRepository;
     private TitanService titanService;
     private FireLotteryService fireLotteryService;
 
@@ -49,10 +51,11 @@ public class ScheduledTasks {
     private HandleLocation emergencyHandleLocation;
 
     public ScheduledTasks(ZoneMappingRepository zoneMappingRepository, CueLocationRepository cueLocationRepository, ActiveClaimRepository activeClaimRepository,
-                          TitanService titanService, FireLotteryService fireLotteryService) {
+                          SpecialZoneClaimRepository specialZoneClaimRepository, TitanService titanService, FireLotteryService fireLotteryService) {
         this.zoneMappingRepository = zoneMappingRepository;
         this.cueLocationRepository = cueLocationRepository;
         this.activeClaimRepository = activeClaimRepository;
+        this.specialZoneClaimRepository = specialZoneClaimRepository;
         this.titanService = titanService;
 
         flameSafetyHandleLocation = titanService.getHandleLocationFromProperties("flamesafety");
@@ -85,6 +88,21 @@ public class ScheduledTasks {
                 zoneMappingRepository.save(zoneMapping);
 
                 activeClaimRepository.delete(activeClaim.getId());
+            }
+        });
+    }
+
+    @Scheduled(fixedRate = 5000)
+    public void expireSpecialZoneClaims() {
+        specialZoneClaimRepository.findAll().forEach(specialZoneClaim -> {
+            if (specialZoneClaim.getClaimTag() != null &&
+                    specialZoneClaim.getClaimed().plus(specialZoneClaim.getClaimExpiration()).isBefore(LocalDateTime.now())) {
+                LOG.info("SpecialZoneClaim for zone {} has expired", specialZoneClaim.getZoneName());
+
+                specialZoneClaim.setClaimTag(null);
+                specialZoneClaim.setClaimed(null);
+                specialZoneClaim.setClaimExpiration(null);
+                specialZoneClaimRepository.save(specialZoneClaim);
             }
         });
     }

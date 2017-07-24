@@ -32,7 +32,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
@@ -71,9 +70,7 @@ public class ZonesController {
 
         List<Zone> result = new ArrayList<>();
         result.addAll(regularZones);
-
-        Zone flameThrower = new Zone("FlameThrowers", false, null, Collections.emptyList(), null);
-        result.add(flameThrower);
+        result.addAll(core.getSpecialZones());
 
         return result;
     }

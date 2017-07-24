@@ -15,18 +15,34 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
+import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.SpecialZoneClaimRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.SpecialZoneClaim;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class FireLotteryServiceImpl implements FireLotteryService {
     private static final Logger LOG = LoggerFactory.getLogger(FireLotteryServiceImpl.class);
+    public static final String ZONE_FLAME_THROWERS = "FlameThrowers";
+
+    private SpecialZoneClaimRepository specialZoneClaimRepository;
 
     private AtomicBoolean fireSystemAvailable = new AtomicBoolean(false);
+
+    public FireLotteryServiceImpl(SpecialZoneClaimRepository specialZoneClaimRepository) {
+        this.specialZoneClaimRepository = specialZoneClaimRepository;
+    }
 
     @Override
     public void setFireSystemAvailable(boolean status) {
@@ -34,6 +50,11 @@ public class FireLotteryServiceImpl implements FireLotteryService {
         if (oldStatus != status) {
             LOG.info("Setting FlameSystem availability to {}", status);
         }
+    }
+
+    @Override
+    public boolean getFireSystemAvailable() {
+        return fireSystemAvailable.get();
     }
 
     /**
@@ -44,18 +65,42 @@ public class FireLotteryServiceImpl implements FireLotteryService {
      *
      * @return
      */
+    @Override
+    @Transactional
     public Optional<String> enterDraw() {
-       if (!fireSystemAvailable.get()) {
-           // Nobody wins if the system is off
-           return Optional.empty();
-       }
+        if (!fireSystemAvailable.get()) {
+            // Nobody wins if the system is off
+            return Optional.empty();
+        }
 
-       // Check if there already is valid claim ticket
-       // exit if there is
+        Optional<SpecialZoneClaim> flameZone = specialZoneClaimRepository.findOneByZoneName(ZONE_FLAME_THROWERS);
+        if (!flameZone.isPresent()) {
+            SpecialZoneClaim specialZoneClaim = new SpecialZoneClaim(ZONE_FLAME_THROWERS, null, null, null);
+            flameZone = Optional.of(specialZoneClaimRepository.save(specialZoneClaim));
+        }
 
-       // If not generate a new ticket and try to persist it
-       // if that works return the ticket
+        SpecialZoneClaim flamer = flameZone.orElseThrow(() -> new ResourceNotFoundException("Very very wrong..."));
 
-       return Optional.empty(); // FIXME
+        if (flamer.getClaimTag() != null) {
+            // Not your day, already claimed
+            return Optional.empty();
+        }
+
+        Random random = new Random(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
+        int randomValue = random.nextInt(10); // bound should be configurable
+        if (!(randomValue == 1)) {
+            // Also not your day
+            return Optional.empty();
+        }
+
+        String claimCode = RandomStringUtils.randomAlphanumeric(8);
+        flamer.setClaimTag(claimCode);
+        flamer.setClaimed(LocalDateTime.now());
+        flamer.setClaimExpiration(Duration.ofMinutes(5));
+
+        specialZoneClaimRepository.save(flamer);
+        LOG.info("Generated claimTicket for the {} zone, expires at {}", ZONE_FLAME_THROWERS, flamer.getClaimed().plus(flamer.getClaimExpiration()));
+
+        return Optional.of(claimCode);
     }
 }

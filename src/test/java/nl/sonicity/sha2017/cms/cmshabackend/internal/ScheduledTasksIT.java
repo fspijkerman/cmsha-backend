@@ -17,6 +17,7 @@ package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.SpecialZoneClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.*;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanServiceMockImpl;
@@ -54,6 +55,9 @@ public class ScheduledTasksIT {
     @Autowired
     private CueLocationRepository cueLocationRepository;
 
+    @Autowired
+    private SpecialZoneClaimRepository specialZoneClaimRepository;
+
     @MockBean
     private FireLotteryService fireLotteryService;
 
@@ -61,7 +65,7 @@ public class ScheduledTasksIT {
 
     @Before
     public void setUp() throws Exception {
-        scheduledTasks = new ScheduledTasks(zoneMappingRepository, cueLocationRepository, activeClaimRepository, new TitanServiceMockImpl(), fireLotteryService);
+        scheduledTasks = new ScheduledTasks(zoneMappingRepository, cueLocationRepository, activeClaimRepository, specialZoneClaimRepository, new TitanServiceMockImpl(), fireLotteryService);
     }
 
     @Test

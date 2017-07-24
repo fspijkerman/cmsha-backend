@@ -84,6 +84,9 @@ public class ZonesControllerTest {
         List<ZoneMapping> zones = getZoneMappings();
 
         when(zoneMappingRepository.findAll()).thenReturn(zones);
+        List<Zone> specialZone = Collections.singletonList(new Zone("FlameThrowers", false, null,
+                Collections.emptyList(), null));
+        when(core.getSpecialZones()).thenReturn(specialZone);
 
         List<Zone> result = zonesController.listZones(false);
         assertThat(result.size(), equalTo(3));
@@ -109,7 +112,7 @@ public class ZonesControllerTest {
         Zone flameThrowerZone = result.stream()
                 .filter(z -> "FlameThrowers".equals(z.getName()))
                 .findAny()
-                .orElseThrow(() -> new Exception("There should be a FlameThrowers"));
+                .orElseThrow(() -> new Exception("There should be a FlameThrowers zone"));
 
         assertThat(flameThrowerZone.getAvailable(), equalTo(false));
         assertThat(flameThrowerZone.getColour(), is(nullValue()));
@@ -119,8 +122,11 @@ public class ZonesControllerTest {
     @Test
     public void testListZonesEmpty() throws Exception {
         List<ZoneMapping> zones = new ArrayList<>();
-
         when(zoneMappingRepository.findAll()).thenReturn(zones);
+
+        List<Zone> specialZone = Collections.singletonList(new Zone("FlameThrowers", false, null,
+                Collections.emptyList(), null));
+        when(core.getSpecialZones()).thenReturn(specialZone);
 
         List<Zone> result = zonesController.listZones(false);
         assertThat(result.size(), equalTo(1));
@@ -129,8 +135,12 @@ public class ZonesControllerTest {
     @Test
     public void testListZonesFilterAvailable() throws Exception {
         List<ZoneMapping> zones = getZoneMappings();
-
         when(zoneMappingRepository.findAll()).thenReturn(zones);
+
+        List<Zone> specialZone = Collections.singletonList(new Zone("FlameThrowers", false, null,
+                Collections.emptyList(), null));
+        when(core.getSpecialZones()).thenReturn(specialZone);
+
 
         List<Zone> result = zonesController.listZones(true);
         assertThat(result.size(), equalTo(2));

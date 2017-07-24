@@ -16,8 +16,13 @@
 package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
+import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
+
+import java.util.List;
 
 public interface Core {
     ZoneMapping processClaim(String zoneName, Claim claim);
+
+    List<Zone> getSpecialZones();
 }

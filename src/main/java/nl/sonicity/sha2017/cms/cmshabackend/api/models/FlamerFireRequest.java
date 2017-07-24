@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.internal;
+package nl.sonicity.sha2017.cms.cmshabackend.api.models;
 
-import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Optional;
+public class FlamerFireRequest {
+    private String claimTicket;
+    private int action;
 
-public interface FireLotteryService {
-    boolean getFireSystemAvailable();
-    void setFireSystemAvailable(boolean status);
+    @JsonCreator
+    public FlamerFireRequest(@JsonProperty("claimTicket") String claimTicket, @JsonProperty("action") int action) {
+        this.claimTicket = claimTicket;
+        this.action = action;
+    }
 
-    @Transactional
-    Optional<String> enterDraw();
+    public String getClaimTicket() {
+        return claimTicket;
+    }
+
+    public int getAction() {
+        return action;
+    }
 }

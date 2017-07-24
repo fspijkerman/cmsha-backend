@@ -53,13 +53,12 @@ public class AuthenticationFilter extends GenericFilterBean {
 
         try {
             if (apiKey.isPresent()) {
-                logger.debug(String.format("Trying to authenticate user by apiKey. Token: %s", apiKey.get()));
+                logger.debug(String.format("Header \"%s\" present, validating the token", APIKEY_HEADER));
 
                 Authentication resultOfAuthentication = processApiKeyAuthentication(apiKey.get());
                 SecurityContextHolder.getContext().setAuthentication(resultOfAuthentication);
             }
 
-            logger.debug("AuthenticationFilter is passing request down the filter chain");
             chain.doFilter(request, response);
         } catch (InternalAuthenticationServiceException internalAuthenticationServiceException) {
             SecurityContextHolder.clearContext();

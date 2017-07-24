@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.internal;
+package nl.sonicity.sha2017.cms.cmshabackend.persistence;
 
-import org.springframework.transaction.annotation.Transactional;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.SpecialZoneClaim;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;
 
-public interface FireLotteryService {
-    boolean getFireSystemAvailable();
-    void setFireSystemAvailable(boolean status);
-
-    @Transactional
-    Optional<String> enterDraw();
+public interface SpecialZoneClaimRepository extends CrudRepository<SpecialZoneClaim, Long> {
+    Optional<SpecialZoneClaim> findOneByZoneName(String zoneName);
 }
