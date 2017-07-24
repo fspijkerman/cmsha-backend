@@ -24,9 +24,9 @@ import java.util.Map;
 
 @ConfigurationProperties("titan")
 public class TitanProperties {
-    private Map<String, Object> webapi = new HashMap<String, Object>();
-    private Map<String, Object> rest = new HashMap<String, Object>();
-    private Map<String, Object> handles = new HashMap<String, Object>();
+    private Map<String, Object> webapi = new HashMap<>();
+    private Map<String, Object> rest = new HashMap<>();
+    private Map<String, Object> handles = new HashMap<>();
 
     public Map<String, Object> getWebapi() {
         return webapi;

@@ -35,8 +35,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-    public final static String ROLE_ADMIN = "ADMIN";
-    public final static String ROLE_ANONYMOUS = "ANONYMOUS";
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_ANONYMOUS = "ANONYMOUS";
 
     @Autowired
     public ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;

@@ -270,6 +270,7 @@ public class ZonesControllerIT {
     }
 
     @Test
+    @SuppressWarnings("squid:S2925")
     public void testClaimZoneConcurrency() throws Exception {
         prepareDatabase();
 

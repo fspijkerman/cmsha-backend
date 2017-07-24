@@ -122,7 +122,7 @@ public class ZonesController {
             @ApiResponse(code = 403, message = "Access is Denied", response = ErrorDetail.class),
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorDetail.class)
     })
-    public Zone claimZone(@PathVariable("zoneName") String zoneName, @RequestBody Claim claim) throws Exception {
+    public Zone claimZone(@PathVariable("zoneName") String zoneName, @RequestBody Claim claim) {
         ValidationHelpers.between(0, 1).test(claim.getBlue()).orThrow();
         ValidationHelpers.between(0, 1).test(claim.getGreen()).orThrow();
         ValidationHelpers.between(0, 1).test(claim.getRed()).orThrow();

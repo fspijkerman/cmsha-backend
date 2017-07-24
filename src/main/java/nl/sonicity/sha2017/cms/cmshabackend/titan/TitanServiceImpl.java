@@ -32,7 +32,7 @@ import java.util.Optional;
 @Component
 @Profile("!mock-titan")
 public class TitanServiceImpl implements TitanService {
-    private final static Object LOCK = new Object();
+    private static final Object LOCK = new Object();
     private TitanDispatcher titanDispatcher;
     private TitanProperties titanProperties;
 

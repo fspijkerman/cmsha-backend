@@ -41,12 +41,14 @@ import java.util.Optional;
 @Component
 public class TitanDispatcher {
 
-    public static final String FLOAT_PATTERN = "#.###";
-    public static final String PARAM_HANDLE_TITAN_ID = "handle_titanId";
-    public static final String PARAM_GROUP = "group";
-    public static final String PARAM_INDEX = "index";
-    public static final String PARAM_UPDATE_ONLY = "updateOnly";
-    public static final String PARAM_PAGE = "page";
+    private static final String FLOAT_PATTERN = "#.###";
+    private static final String PARAM_HANDLE_TITAN_ID = "handle_titanId";
+    private static final String PARAM_GROUP = "group";
+    private static final String PARAM_INDEX = "index";
+    private static final String PARAM_UPDATE_ONLY = "updateOnly";
+    private static final String PARAM_PAGE = "page";
+    private static final String PARAM_LEVEL = "level";
+
     private String baseUrl;
 
     @Autowired
@@ -81,23 +83,23 @@ public class TitanDispatcher {
     }
 
     public List<Handle> listFixtures() {
-        return getHandlesByType(HandleType.Fixtures);
+        return getHandlesByType(HandleType.FIXTURES);
     }
 
     public List<Handle> listGroups() {
-        return getHandlesByType(HandleType.Groups);
+        return getHandlesByType(HandleType.GROUPS);
     }
 
     public List<Handle> listColours() {
-        return getHandlesByType(HandleType.Colours);
+        return getHandlesByType(HandleType.COLOURS);
     }
 
     public List<Handle> listMacros() {
-        return getHandlesByType(HandleType.Macros);
+        return getHandlesByType(HandleType.MACROS);
     }
 
     public  List<Handle> listPlaybacks() {
-        return getHandlesByType(HandleType.Playbacks);
+        return getHandlesByType(HandleType.PLAYBACKS);
     }
 
     private List<Handle> getHandlesByType(HandleType handleType) {
@@ -159,7 +161,7 @@ public class TitanDispatcher {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/Playbacks/FirePlaybackAtLevel")
                 .queryParam("userNumber", userNumber)
-                .queryParam("level", formatter.format(level))
+                .queryParam(PARAM_LEVEL, formatter.format(level))
                 .queryParam("bool", alwaysRefire);
 
         executeTitanScriptCall(builder.build().encode().toString());
@@ -203,7 +205,7 @@ public class TitanDispatcher {
                 .path("/titan/script/2/Playbacks/StoreCue")
                 .queryParam(PARAM_GROUP, group)
                 .queryParam(PARAM_INDEX, index)
-                .queryParam(PARAM_UPDATE_ONLY, Boolean.toString(false));
+                .queryParam(PARAM_UPDATE_ONLY, Boolean.toString(updateOnly));
 
         String requestUrl = builder.build().encode().toString();
         executeTitanScriptCall(requestUrl);
@@ -216,7 +218,7 @@ public class TitanDispatcher {
                 .path("/titan/script/2/Playbacks/PlayCue")
                 .queryParam(PARAM_GROUP, group)
                 .queryParam(PARAM_INDEX, index)
-                .queryParam("level", formatter.format(level))
+                .queryParam(PARAM_LEVEL, formatter.format(level))
                 .queryParam("accuracy", formatter.format(accuracy));
 
         String requestUrl = builder.build().encode().toString();
@@ -229,7 +231,7 @@ public class TitanDispatcher {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/titan/script/2/Playbacks/PlayPlayback")
                 .queryParam(PARAM_HANDLE_TITAN_ID, titanId)
-                .queryParam("level", formatter.format(level))
+                .queryParam(PARAM_LEVEL, formatter.format(level))
                 .queryParam("accuracy", formatter.format(accuracy));
 
         String requestUrl = builder.build().encode().toString();

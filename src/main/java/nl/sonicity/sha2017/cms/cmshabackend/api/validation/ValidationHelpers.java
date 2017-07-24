@@ -23,9 +23,11 @@ import static java.lang.String.format;
  * Created by hugo on 09/07/2017.
  */
 public class ValidationHelpers {
+    private ValidationHelpers() {
+    }
 
     public static Validation<Float> between(float lower, float upper){
-        return SimpleValidation.from((s) -> s >=lower && s <= upper, format("value must be between %f and %f.", lower, upper));
+        return SimpleValidation.from(s -> s >=lower && s <= upper, format("value must be between %f and %f.", lower, upper));
     }
 
     public static Validation<String> notEmpty() {

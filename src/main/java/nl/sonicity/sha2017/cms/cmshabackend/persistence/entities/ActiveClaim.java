@@ -42,7 +42,7 @@ public class ActiveClaim implements Serializable {
     private Integer playbackTitanId;
 
     @Embedded
-    Colour colour;
+    private Colour colour;
 
     protected ActiveClaim() {}
 

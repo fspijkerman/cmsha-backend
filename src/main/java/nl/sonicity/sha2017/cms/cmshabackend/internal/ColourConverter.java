@@ -23,6 +23,9 @@ import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
  */
 public class ColourConverter {
 
+    private ColourConverter() {
+    }
+
     public static String colourAsRGBHex(Colour colour) {
         return String.format("%02x%02x%02x",
                 floatPercentageToInt(colour.getRed()),

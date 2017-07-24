@@ -32,7 +32,7 @@ public class SimpleValidation<K> implements Validation<K> {
     }
 
     public static <K> SimpleValidation<K> from(Predicate<K> predicate, String onErrorMessage) {
-        return new SimpleValidation<K>(predicate, onErrorMessage);
+        return new SimpleValidation<>(predicate, onErrorMessage);
     }
 
     @Override

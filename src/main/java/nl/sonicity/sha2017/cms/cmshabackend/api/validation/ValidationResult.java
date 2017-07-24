@@ -45,7 +45,7 @@ public class ValidationResult {
         return message;
     }
 
-    public void orThrow() throws ValidationFailedException {
+    public void orThrow() {
         if (!isValid()) {
             throw new ValidationFailedException(getMessage());
         }

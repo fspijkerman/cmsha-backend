@@ -19,16 +19,17 @@ package nl.sonicity.sha2017.cms.cmshabackend.titan.models;
  * Created by hugo on 25/06/2017.
  */
 public enum HandleType {
-    Fixtures("Fixtures"),
-    Groups("Groups"),
-    Macros("Macros"),
-    Playbacks("Playbacks"),
-    StaticPlaybacks("StaticPlaybacks"),
-    Colours("Colours"),
-    Workspaces("Workspaces"),
-    Effects("Effects"),
-    RollerA("RollerA"),
-    PlaybackWindow("PlaybackWindow");
+    FIXTURES("Fixtures"),
+    GROUPS("Groups"),
+    MACROS("Macros"),
+    PLAYBACKS("Playbacks"),
+    STATIC_PLAYBACKS("StaticPlaybacks"),
+    COLOURS("Colours"),
+    WORKSPACES("Workspaces"),
+    EFFECTS("Effects"),
+    ROLLER_A("RollerA"),
+    ROLLER_B("RollerB"),
+    PLAYBACK_WINDOW("PlaybackWindow");
 
     private String titanGroupName;
 
