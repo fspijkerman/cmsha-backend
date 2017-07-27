@@ -120,9 +120,9 @@ public class ZonesController {
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorDetail.class)
     })
     public Zone claimZone(@PathVariable("zoneName") String zoneName, @RequestBody Claim claim) {
-        ValidationHelpers.between(0, 1).test(claim.getBlue()).orThrow();
-        ValidationHelpers.between(0, 1).test(claim.getGreen()).orThrow();
-        ValidationHelpers.between(0, 1).test(claim.getRed()).orThrow();
+        ValidationHelpers.between(0f, 1f).test(claim.getBlue()).orThrow();
+        ValidationHelpers.between(0f, 1f).test(claim.getGreen()).orThrow();
+        ValidationHelpers.between(0f, 1f).test(claim.getRed()).orThrow();
 
         ZoneMapping zoneMapping = core.processClaim(zoneName, claim);
         return convertToZone(zoneMapping);

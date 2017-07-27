@@ -17,6 +17,8 @@ package nl.sonicity.sha2017.cms.cmshabackend.api.validation;
 
 import com.google.common.base.Strings;
 
+import java.util.Objects;
+
 import static java.lang.String.format;
 
 /**
@@ -27,7 +29,15 @@ public class ValidationHelpers {
     }
 
     public static Validation<Float> between(float lower, float upper){
-        return SimpleValidation.from(s -> s >=lower && s <= upper, format("value must be between %f and %f.", lower, upper));
+        return SimpleValidation.from(s -> s >=lower && s <= upper, format("value must be between %f and %f (inclusive).", lower, upper));
+    }
+
+    public static Validation<Integer> between(int lower, int upper) {
+        return SimpleValidation.from(s -> s >= lower && s <= upper, format("value must be between %d and %d (inclusive).", lower, upper));
+    }
+
+    public static Validation<Integer> notNull() {
+        return SimpleValidation.from(Objects::nonNull, "Object should not be null");
     }
 
     public static Validation<String> notEmpty() {

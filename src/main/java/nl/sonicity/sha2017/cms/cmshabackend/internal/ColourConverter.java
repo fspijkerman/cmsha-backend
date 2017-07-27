@@ -39,7 +39,7 @@ public class ColourConverter {
      * @return
      */
     public static int floatPercentageToInt(float value) {
-        ValidationHelpers.between(0, 1).test(value).orThrow();
+        ValidationHelpers.between(0f, 1f).test(value).orThrow();
         float decimalValue = 255 * value;
         return (int)Math.abs(decimalValue);
     }

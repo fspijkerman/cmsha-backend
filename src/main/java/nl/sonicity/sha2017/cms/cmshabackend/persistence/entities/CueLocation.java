@@ -15,6 +15,8 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.persistence.entities;
 
+import org.springframework.data.domain.Persistable;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -23,7 +25,7 @@ import java.io.Serializable;
  */
 @Entity
 @IdClass(CueLocation.CueLocationPk.class)
-public class CueLocation implements Serializable {
+public class CueLocation implements Serializable, Persistable<CueLocation.CueLocationPk> {
 
     @Id
     @Column(nullable = false, name = "groupname")
@@ -43,6 +45,9 @@ public class CueLocation implements Serializable {
     @OneToOne(cascade = CascadeType.DETACH)
     private ActiveClaim activeClaim;
 
+    @Transient
+    private boolean newObject = false;
+
     protected CueLocation() {
     }
 
@@ -52,6 +57,11 @@ public class CueLocation implements Serializable {
         this.pageIndex = pageIndex;
         this.reserved = reserved;
         this.activeClaim = activeClaim;
+    }
+
+    @Override
+    public CueLocationPk getId() {
+        return new CueLocationPk(group, page, pageIndex);
     }
 
     public String getGroup() {
@@ -80,6 +90,15 @@ public class CueLocation implements Serializable {
 
     public void setActiveClaim(ActiveClaim activeClaim) {
         this.activeClaim = activeClaim;
+    }
+
+    @Override
+    public boolean isNew() {
+        return newObject;
+    }
+
+    public void setNew(boolean newObject) {
+        this.newObject = newObject;
     }
 
     @Override
