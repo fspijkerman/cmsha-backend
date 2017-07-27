@@ -69,19 +69,26 @@ public class TitanServiceMockImpl implements TitanService {
 
     @Override
     public boolean isHandleActive(HandleLocation handleLocation) {
+        LOG.info("TitanServiceMock: isHandleActive({}) -> true", handleLocation);
         return true;
     }
 
     @Override
     public HandleLocation getHandleLocationFromProperties(String handleName) {
+        HandleLocation location;
         switch (handleName) {
             case "flamesafety":
-                return new HandleLocation("PlaybackWindow", 0,0 );
+                location = new HandleLocation("PlaybackWindow", 0,0 );
+                break;
             case "emergency":
-                return new HandleLocation("PlaybackWindow", 1, 0);
+                location = new HandleLocation("PlaybackWindow", 1, 0);
+                break;
             default:
                 throw new PropertyNotFoundException("Mock not configured");
         }
+
+        LOG.info("TitanServiceMock: getHandleLocationFromProperties({}) -> {}", handleName, location);
+        return location;
     }
 
 

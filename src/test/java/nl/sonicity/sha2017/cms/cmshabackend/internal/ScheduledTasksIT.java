@@ -65,7 +65,7 @@ public class ScheduledTasksIT {
 
     @Before
     public void setUp() throws Exception {
-        scheduledTasks = new ScheduledTasks(zoneMappingRepository, cueLocationRepository, activeClaimRepository, specialZoneClaimRepository, new TitanServiceMockImpl(), fireLotteryService);
+        scheduledTasks = new ScheduledTasksImpl(zoneMappingRepository, cueLocationRepository, activeClaimRepository, specialZoneClaimRepository, new TitanServiceMockImpl(), fireLotteryService);
     }
 
     @Test
