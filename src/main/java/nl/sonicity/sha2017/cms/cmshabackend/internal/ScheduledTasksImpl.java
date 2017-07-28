@@ -67,6 +67,7 @@ public class ScheduledTasksImpl implements ScheduledTasks {
     }
 
     @Override
+    @Scheduled(fixedRate = 5000)
     public void expireClaims() {
         zoneMappingRepository.findByActiveClaimIsNotNull().forEach(zoneMapping -> {
             ActiveClaim activeClaim = zoneMapping.getActiveClaim();
@@ -86,13 +87,13 @@ public class ScheduledTasksImpl implements ScheduledTasks {
 
                 zoneMapping.setActiveClaim(null);
                 zoneMappingRepository.save(zoneMapping);
-
                 activeClaimRepository.delete(activeClaim.getId());
             }
         });
     }
 
     @Override
+    @Scheduled(fixedRate = 5000)
     public void expireSpecialZoneClaims() {
         specialZoneClaimRepository.findAll().forEach(specialZoneClaim -> {
             if (specialZoneClaim.getClaimTag() != null &&
@@ -108,6 +109,7 @@ public class ScheduledTasksImpl implements ScheduledTasks {
     }
 
     @Override
+    @Scheduled(fixedRate = 5000)
     public void updateActivationStatus() {
         fireLotteryService.setFireSystemAvailable(titanService.isHandleActive(flameSafetyHandleLocation));
     }

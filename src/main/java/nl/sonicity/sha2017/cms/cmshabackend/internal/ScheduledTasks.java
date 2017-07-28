@@ -15,15 +15,10 @@
  */
 package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
-import org.springframework.scheduling.annotation.Scheduled;
-
 public interface ScheduledTasks {
-    @Scheduled(fixedRate = 5000)
     void expireClaims();
 
-    @Scheduled(fixedRate = 5000)
     void expireSpecialZoneClaims();
 
-    @Scheduled(fixedRate = 5000)
     void updateActivationStatus();
 }
