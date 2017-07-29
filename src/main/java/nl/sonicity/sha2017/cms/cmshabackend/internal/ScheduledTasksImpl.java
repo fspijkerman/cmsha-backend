@@ -71,6 +71,7 @@ public class ScheduledTasksImpl implements ScheduledTasks {
     public void expireClaims() {
         zoneMappingRepository.findByActiveClaimIsNotNull().forEach(zoneMapping -> {
             ActiveClaim activeClaim = zoneMapping.getActiveClaim();
+            LOG.debug("Claim {} -> created at {} and expires at {}", activeClaim.getId(), activeClaim.getCreated(), activeClaim.getCreated().plus(activeClaim.getExpiration()));
             if (activeClaim.getCreated().plus(activeClaim.getExpiration()).isBefore(LocalDateTime.now())) {
                 LOG.info("Zone {} has an expiring claim, stopping playback on titanId {}", zoneMapping.getZoneName(), activeClaim.getPlaybackTitanId());
                 titanService.deactivateCue(activeClaim.getPlaybackTitanId());

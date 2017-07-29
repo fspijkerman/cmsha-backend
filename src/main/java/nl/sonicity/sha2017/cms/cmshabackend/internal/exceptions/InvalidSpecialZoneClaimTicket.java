@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.sonicity.sha2017.cms.cmshabackend.internal;
+package nl.sonicity.sha2017.cms.cmshabackend.internal.exceptions;
 
-import org.springframework.transaction.annotation.Transactional;
+public class InvalidSpecialZoneClaimTicket extends RuntimeException {
+    public InvalidSpecialZoneClaimTicket() {
+        super();
+    }
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+    public InvalidSpecialZoneClaimTicket(String message) {
+        super(message);
+    }
 
-public interface FireLotteryService {
-    boolean getFireSystemAvailable();
-    void setFireSystemAvailable(boolean status);
+    public InvalidSpecialZoneClaimTicket(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    @Transactional
-    Optional<String> enterDraw();
-
-    LocalDateTime claim(String claimTicket);
-
-    LocalDateTime fire(String claimTicket, int sequence);
+    public InvalidSpecialZoneClaimTicket(Throwable cause) {
+        super(cause);
+    }
 }

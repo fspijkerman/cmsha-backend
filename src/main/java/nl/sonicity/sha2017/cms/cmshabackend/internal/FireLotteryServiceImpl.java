@@ -16,6 +16,7 @@
 package nl.sonicity.sha2017.cms.cmshabackend.internal;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.exceptions.ResourceNotFoundException;
+import nl.sonicity.sha2017.cms.cmshabackend.internal.exceptions.InvalidSpecialZoneClaimTicket;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.SpecialZoneClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.SpecialZoneClaim;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -103,4 +105,43 @@ public class FireLotteryServiceImpl implements FireLotteryService {
 
         return Optional.of(claimCode);
     }
+
+    @Override
+    public LocalDateTime claim(String claimTicket) {
+        SpecialZoneClaim flameZone = specialZoneClaimRepository.findOneByZoneName(ZONE_FLAME_THROWERS)
+                .orElseThrow(() -> new ResourceNotFoundException("Zone \"" + ZONE_FLAME_THROWERS + "\" missing"));
+
+        if (flameZone.getClaimTag() == null || !flameZone.getClaimTag().equals(claimTicket)) {
+            throw new InvalidSpecialZoneClaimTicket("claim_ticket no longer valid");
+        }
+
+        // Add 30 minutes so people can walk to the flamer
+        flameZone.setClaimExpiration(flameZone.getClaimExpiration().plus(Duration.ofMinutes(30)));
+
+        flameZone = specialZoneClaimRepository.save(flameZone);
+        return flameZone.getClaimed().plus(flameZone.getClaimExpiration());
+    }
+
+    @Override
+    public LocalDateTime fire(String claimTicket, int sequence) {
+        SpecialZoneClaim flameZone = specialZoneClaimRepository.findOneByZoneName(ZONE_FLAME_THROWERS)
+                .orElseThrow(() -> new ResourceNotFoundException("Zone \"" + ZONE_FLAME_THROWERS + "\" missing"));
+
+        if (flameZone.getClaimTag() == null || !flameZone.getClaimTag().equals(claimTicket)) {
+            throw new InvalidSpecialZoneClaimTicket("claim_ticket no longer valid");
+        }
+
+        LocalDateTime currentExpiry = flameZone.getClaimed().plus(flameZone.getClaimExpiration());
+        if (currentExpiry.isAfter(LocalDateTime.now().plus(Duration.ofMinutes(2)))) {
+            LOG.debug("Resetting expiration to now + 2 minutes");
+            long delta = ChronoUnit.SECONDS.between(flameZone.getClaimed(), LocalDateTime.now().plus(Duration.ofMinutes(2)));
+            flameZone.setClaimExpiration(Duration.ofSeconds(delta));
+            flameZone = specialZoneClaimRepository.save(flameZone);
+        }
+
+        //FIXME trigger something on the titan here
+
+        return flameZone.getClaimed().plus(flameZone.getClaimExpiration());
+    }
+
 }

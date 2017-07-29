@@ -16,6 +16,7 @@
 package nl.sonicity.sha2017.cms.cmshabackend.api.exceptions;
 
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ErrorDetail;
+import nl.sonicity.sha2017.cms.cmshabackend.internal.exceptions.InvalidSpecialZoneClaimTicket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -74,6 +75,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         LOG.debug(LOGMSG_MAPPING_EXCEPTION, ex.getClass().getSimpleName(), ex.getMessage(), ex);
         return handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(value = {InvalidSpecialZoneClaimTicket.class})
+    protected ResponseEntity<Object> handleInvalidSpecialZoneClaimTicket(RuntimeException ex, WebRequest request) {
+        ErrorDetail bodyOfResponse = new ErrorDetail(ex.getMessage());
+        LOG.debug(LOGMSG_MAPPING_EXCEPTION, ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
 
     @ExceptionHandler(value = {Exception.class})

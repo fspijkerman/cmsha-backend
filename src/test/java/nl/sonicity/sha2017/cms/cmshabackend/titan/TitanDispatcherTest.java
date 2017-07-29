@@ -48,7 +48,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestPropertySource(locations="classpath:test.properties")
-@ActiveProfiles({"test"})
+@ActiveProfiles({"test", "mock-titan"})
 public class TitanDispatcherTest {
 
     @Autowired
