@@ -19,35 +19,25 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.models.Claim;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Coordinate;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.ExtendedZone;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.Zone;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.*;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneCoordinates;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.CreateRgbCueResult;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.models.HandleLocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -196,6 +186,9 @@ public class ZonesControllerIT extends AbstractRestControllerIT {
         assertThat(zoneMappingRepository.findOneByZoneName("TestZone1").isPresent(), equalTo(true));
         ZoneMapping zoneMapping = zoneMappingRepository.findOneByZoneName("TestZone1").get();
         assertThat(zoneMapping.getCoordinatesList().size(), equalTo(3));
+        ZoneCoordinates zoneCoordinates = zoneMapping.getCoordinatesList().get(0);
+        assertThat(zoneCoordinates.getLongitude(), equalTo(52.033199d));
+        assertThat(zoneCoordinates.getLatitude(), equalTo(5.155046d));
     }
 
     @Test

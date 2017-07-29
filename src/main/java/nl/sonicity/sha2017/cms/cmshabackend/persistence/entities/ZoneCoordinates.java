@@ -36,7 +36,7 @@ public class ZoneCoordinates implements Serializable{
     protected ZoneCoordinates() {
     }
 
-    public ZoneCoordinates(Double latitude, Double longitude) {
+    public ZoneCoordinates(Double longitude, Double latitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }
