@@ -20,6 +20,7 @@ import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.SpecialZoneClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.*;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
@@ -91,5 +92,13 @@ public abstract class AbstractRestControllerIT {
 
         SpecialZoneClaim specialZoneClaim = new SpecialZoneClaim("FlameThrowers", null, null, null);
         specialZoneClaimRepository.save(specialZoneClaim);
+    }
+
+    @Before
+    public void cleanDatabase() throws Exception {
+        cueLocationRepository.deleteAll();
+        zoneMappingRepository.deleteAll();
+        activeClaimRepository.deleteAll();
+        specialZoneClaimRepository.deleteAll();
     }
 }

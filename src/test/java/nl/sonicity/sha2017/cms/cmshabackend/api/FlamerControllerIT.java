@@ -21,7 +21,6 @@ import nl.sonicity.sha2017.cms.cmshabackend.api.models.FlamerFireRequest;
 import nl.sonicity.sha2017.cms.cmshabackend.api.models.FlamerFireResponse;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.SpecialZoneClaim;
 import nl.sonicity.sha2017.cms.cmshabackend.titan.TitanService;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
@@ -75,13 +74,6 @@ public class FlamerControllerIT extends AbstractRestControllerIT {
         firedFlameZone = specialZoneClaimRepository.findOneByZoneName("FlameThrowers")
                 .orElseThrow(() -> new Exception("Mock data not present"));
         assertThat(firedFlameZone.getClaimExpiration(), equalTo(Duration.ofMinutes(2)));
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        cueLocationRepository.deleteAll();
-        zoneMappingRepository.deleteAll();
-        activeClaimRepository.deleteAll();
     }
 
 }
