@@ -140,6 +140,8 @@ public class FireLotteryServiceImpl implements FireLotteryService {
         }
 
         //FIXME trigger something on the titan here
+        long remaining = ChronoUnit.SECONDS.between(flameZone.getClaimed().plus(flameZone.getClaimExpiration()), LocalDateTime.now());
+        LOG.info("Triggered event {} on {}, {} seconds remaining to trigger more events", sequence, ZONE_FLAME_THROWERS, remaining);
 
         return flameZone.getClaimed().plus(flameZone.getClaimExpiration());
     }
