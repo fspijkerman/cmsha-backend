@@ -33,12 +33,18 @@ import static nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelp
 public class FlamerController {
     private FireLotteryService fireLotteryService;
 
+    public FlamerController(FireLotteryService fireLotteryService) {
+        this.fireLotteryService = fireLotteryService;
+    }
+
     @RequestMapping(path="/claim", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @PreAuthorize("hasAuthority('ANONYMOUS') or hasRole('ROLE_ADMIN')")
     @ApiResponses({
             @ApiResponse(code = 403, message = "Invalid claim_ticket", response = ErrorDetail.class),
     })
     public FlamerClaimResponse claim(@RequestBody FlamerClaimRequest flamerClaimRequest) {
+        notEmpty().test(flamerClaimRequest.getClaimTicket()).orThrow();
+
         LocalDateTime expiration = fireLotteryService.claim(flamerClaimRequest.getClaimTicket());
         return new FlamerClaimResponse(expiration);
     }

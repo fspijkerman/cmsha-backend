@@ -17,12 +17,9 @@ package nl.sonicity.sha2017.cms.cmshabackend.api;
 
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ActiveClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.CueLocationRepository;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.SpecialZoneClaimRepository;
 import nl.sonicity.sha2017.cms.cmshabackend.persistence.ZoneMappingRepository;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ActiveClaim;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.Colour;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.CueLocation;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneCoordinates;
-import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.ZoneMapping;
+import nl.sonicity.sha2017.cms.cmshabackend.persistence.entities.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
@@ -69,6 +66,9 @@ public abstract class AbstractRestControllerIT {
     @Autowired
     protected CueLocationRepository cueLocationRepository;
 
+    @Autowired
+    protected SpecialZoneClaimRepository specialZoneClaimRepository;
+
     protected void prepareDatabase() {
         ZoneMapping zoneMapping = new ZoneMapping("Zone1", "Group 1", 1111);
         List<ZoneCoordinates> zoneCoordinates = new ArrayList<>();
@@ -88,5 +88,8 @@ public abstract class AbstractRestControllerIT {
         cueLocationRepository.save(cueLocation);
         cueLocation = new CueLocation("PlaybackWindow", 0, 1, false, null);
         cueLocationRepository.save(cueLocation);
+
+        SpecialZoneClaim specialZoneClaim = new SpecialZoneClaim("FlameThrowers", null, null, null);
+        specialZoneClaimRepository.save(specialZoneClaim);
     }
 }
