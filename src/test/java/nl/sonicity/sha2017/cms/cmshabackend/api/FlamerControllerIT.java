@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -52,8 +51,7 @@ public class FlamerControllerIT extends AbstractRestControllerIT {
         FlamerClaimRequest request = new FlamerClaimRequest("claimticket");
         HttpEntity<FlamerClaimRequest> entity = new HttpEntity<>(request, null);
 
-        ResponseEntity<FlamerClaimResponse> response =
-                restTemplate.exchange("http://localhost:{port}/flamer/claim", HttpMethod.POST, entity, FlamerClaimResponse.class, localServerPort);
+        restTemplate.exchange("http://localhost:{port}/flamer/claim", HttpMethod.POST, entity, FlamerClaimResponse.class, localServerPort);
 
         SpecialZoneClaim claimedFlameZone = specialZoneClaimRepository.findOneByZoneName("FlameThrowers")
                 .orElseThrow(() -> new Exception("Mock data not present"));

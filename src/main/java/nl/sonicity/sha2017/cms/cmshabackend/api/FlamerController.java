@@ -24,6 +24,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static nl.sonicity.sha2017.cms.cmshabackend.api.validation.ValidationHelpers.*;
 
@@ -46,7 +48,7 @@ public class FlamerController {
         notEmpty().test(flamerClaimRequest.getClaimTicket()).orThrow();
 
         LocalDateTime expiration = fireLotteryService.claim(flamerClaimRequest.getClaimTicket());
-        return new FlamerClaimResponse(expiration);
+        return new FlamerClaimResponse(convertInternalTimeToNlTime(expiration));
     }
 
     @RequestMapping(path="/fire", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -60,8 +62,14 @@ public class FlamerController {
 
         LocalDateTime expiration =
                 fireLotteryService.fire(flamerFireRequest.getClaimTicket(), flamerFireRequest.getAction());
+        return new FlamerFireResponse(convertInternalTimeToNlTime(expiration));
+    }
 
-        return new FlamerFireResponse(expiration);
+    private LocalDateTime convertInternalTimeToNlTime(LocalDateTime localDateTime) {
+        ZonedDateTime ldtZoned = localDateTime.atZone(ZoneId.systemDefault());
+        ZonedDateTime nlZoned = ldtZoned.withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
+
+        return nlZoned.toLocalDateTime();
     }
 
 }
